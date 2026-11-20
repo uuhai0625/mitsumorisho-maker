@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+  (function() {
+    var GA_ID = 'G-J3QPF9HNXN';
+    var isLocalDev = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+    if (isLocalDev) return;
+    try { if (/[?&]no_ga=0/.test(location.search)) localStorage.removeItem('no_ga'); if (/[?&]no_ga=1/.test(location.search)) localStorage.setItem('no_ga', '1'); if (localStorage.getItem('no_ga') === '1') return; } catch (e) {}
+    var gaQ = new URLSearchParams(location.search); if (gaQ.get('obs') === '1' || gaQ.get('no_ga') === '1') return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href*="booth.pm"]:not([href*="/search"])') : null;
+      if (!a) return;
+      gtag('event', 'booth_click', { link_url: a.href, link_id: a.id || '', link_text: (a.textContent || '').trim().slice(0, 40) });
+    });
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="見積書を無料・登録不要で作成。品名・数量・単価を入れると、10%と8%(軽減)の税率ごとに消費税と合計を計算し、A4の見積書を印刷・画像で保存できます。Excelの表の貼り付け、金額と数量&#215;単価の照合、元の見積書の合計が合うかの確かめ(税率ごと・行ごと、切り捨て・四捨五入・切り上げ)つき。無料版は明細15行まで。スマホでも使えます。">
+<link rel="canonical" href="https://uuhai0625.github.io/mitsumorisho-maker/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="見積書作成ツール|無料・登録不要、計算チェックつきでA4の見積書を作成">
+<meta property="og:description" content="見積書を無料・登録不要で作成。品名・数量・単価を入れると、10%と8%(軽減)の税率ごとに消費税と合計を計算し、A4の見積書を印刷・画像で保存できます。Excelの表の貼り付け、金額と数量&#215;単価の照合、元の見積書の合計が合うかの確かめ(税率ごと・行ごと、切り捨て・四捨五入・切り上げ)つき。無料版は明細15行まで。スマホでも使えます。">
+<meta property="og:url" content="https://uuhai0625.github.io/mitsumorisho-maker/">
+<meta property="og:image" content="https://uuhai0625.github.io/mitsumorisho-maker/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<title>見積書作成ツール|無料・登録不要、計算チェックつきでA4の見積書を作成</title>
+<style>
+  :root {
+    --bg: #f1f4f9;
+    --panel: #ffffff;
+    --border: #d3dbe8;
+    --field-border: #4a5568;
+    --text: #1c2430;
+    --muted: #4a5568;
+    --accent: #1f4e8c;
+    --accent-dark: #17365f;
+    --ng: #b3261e;
+    --ok: #1d6b3a;
+    --locked: #c5d0e0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  header { background: var(--accent-dark); color: #fff; padding: 22px 20px 16px; text-align: center; }
+  header h1 { margin: 0 0 6px; font-size: 1.35rem; text-wrap: balance; }
+  section.card h2, header p { text-wrap: balance; }
+  .entry { max-width: 1120px; margin: 14px auto 0; padding: 0 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .entry .btn { flex: 1 1 14em; font-weight: bold; }
+  .hint.w { color: var(--ng); font-weight: bold; }
+  .nb { display: inline-block; }
+  header p { margin: 0; font-size: .9rem; }
+  header p.sub { margin-top: 6px; font-size: .8rem; opacity: .9; }
+  main { max-width: 1120px; margin: 0 auto; padding: 22px 16px 50px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "info pv" "iss pv" "itm pv" "chk pv"; column-gap: 18px; align-items: start; }
+  .layout > * { min-width: 0; }
+  #info-card { grid-area: info; } #iss-card { grid-area: iss; } #itm-card { grid-area: itm; } #chk-card { grid-area: chk; }
+  #pv-card { grid-area: pv; position: sticky; top: 12px; }
+  section.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; }
+  section.card h2 { margin: 0 0 6px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  section.card h3 { font-size: .95rem; margin: 14px 0 4px; }
+  .fine { color: var(--muted); font-size: .86rem; margin: 8px 0 0; }
+  .note { font-size: .86rem; border-left: 4px solid var(--accent); background: #eaf0f8; padding: 8px 10px; margin: 0 0 12px; border-radius: 0 8px 8px 0; }
+  .badge { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: #dde7f4; color: #17365f; font-weight: bold; }
+  .hidden { display: none !important; }
+  label.field, div.field { display: block; margin-bottom: 12px; }
+  .lbl { font-size: .9rem; font-weight: bold; display: block; }
+  .hint { font-size: .875rem; color: var(--muted); font-weight: normal; display: block; margin-top: 2px; }
+  select, input[type=text], input[type=date], textarea { margin-top: 5px; min-height: 44px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 1rem; font-family: inherit; background: #fff; color: var(--text); width: 100%; padding: 8px 10px; }
+  textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+  input[aria-invalid=true] { border: 2px solid var(--ng); }
+  .row2 { display: flex; gap: 12px; }
+  .row2 > * { flex: 1; min-width: 0; }
+  .row3 { display: flex; gap: 10px; }
+  .row3 > * { flex: 1; min-width: 0; }
+  .inl { display: flex; gap: 6px; align-items: flex-end; }
+  .inl > select { flex: 0 0 6.5em; }
+  .inl > input { flex: 1; min-width: 0; }
+  .chk { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .92rem; cursor: pointer; }
+  .chk input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+  .modes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .modes label { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px; border: 1px solid var(--field-border); border-radius: 8px; cursor: pointer; font-size: .9rem; background: #fff; }
+  .modes input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .modes label:has(input:checked) { border: 2px solid var(--accent); background: #e6eef8; font-weight: bold; }
+  .modes label:has(input:focus-visible) { outline: 3px solid #c2410c; outline-offset: 2px; }
+  .set { margin-bottom: 10px; }
+  .set .lbl { margin-bottom: 0; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { min-height: 44px; min-width: 44px; padding: 9px 16px; border-radius: 8px; font-size: .9rem; cursor: pointer; border: 1px solid var(--field-border); background: #fff; color: var(--text); font-family: inherit; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+  .btn.small { padding: 6px 12px; font-size: .88rem; }
+  .btn.del { color: var(--ng); border-color: #c98a85; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, h3:focus-visible { outline: 3px solid #c2410c; outline-offset: 2px; }
+  .btn-row .btn { flex: 1; }
+  .status { font-size: .88rem; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  .status.err { color: var(--ng); font-weight: bold; }
+  .status:empty { min-height: 0; margin: 0; }
+  .status .w { display: block; color: var(--ng); font-weight: bold; }
+  #warnNote { color: var(--ng); font-weight: bold; }
+  #warnNote ul { margin: 4px 0 0; padding-left: 1.2em; }
+  .items { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .item { border: 1px solid var(--border); border-radius: 10px; background: #fafbfd; padding: 8px 10px; }
+  .item.ng { border: 2px solid var(--ng); }
+  .item.rq { background: #fff8e1; border-color: #e3c36a; }
+  .item .rqmsg { font-size: .84rem; margin-top: 4px; color: #7a5a00; font-weight: bold; }
+  .item .top { display: flex; gap: 6px; align-items: flex-end; }
+  .item .no { font-weight: bold; color: var(--muted); min-width: 1.6em; padding-bottom: 10px; text-align: right; }
+  .item .nm { flex: 1; min-width: 0; display: block; }
+  .item .acts { display: flex; gap: 4px; flex: none; }
+  .item .acts .btn { min-width: 40px; padding: 6px 8px; }
+  .item .nums { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, .8fr) minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(0, 1.4fr); gap: 6px; margin-top: 6px; }
+  .item .nums > label { display: block; min-width: 0; }
+  .item .mini { display: block; font-size: .78rem; color: var(--muted); }
+  .item input, .item select { margin-top: 2px; min-height: 42px; padding: 6px 8px; }
+  .item .num input { text-align: right; }
+  .item .rmsg { font-size: .84rem; margin-top: 4px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .item .rmsg:empty { display: none; }
+  .item .rmsg.ng { color: var(--ng); font-weight: bold; }
+  .item .rmsg .btn { font-weight: normal; color: var(--text); }
+  details.box { border: 1px solid var(--border); border-radius: 10px; background: #fafbfd; padding: 0 10px; margin: 10px 0; }
+  details.box > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: .92rem; font-weight: bold; }
+  .sum { font-size: .92rem; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #fafbfd; margin-top: 10px; }
+  .sum p { margin: 0; }
+  .sum b { font-size: 1rem; }
+  .chkres { margin-top: 8px; font-size: .9rem; }
+  .chkres p { margin: 4px 0; }
+  .chkres .ok { color: var(--ok); font-weight: bold; }
+  .chkres .ng { color: var(--ng); font-weight: bold; }
+  .chkres .hintbox { border: 1px solid #e3c36a; background: #fff8e1; border-radius: 8px; padding: 8px 10px; margin-top: 8px; }
+  .chkres .hintbox ul { margin: 4px 0; padding-left: 1.2em; }
+  .saved { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+  .saved .sv { border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 6px 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .saved .sv .tx { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; font-size: .9rem; }
+  .saved .sv .tx small { display: block; color: var(--muted); }
+  .imgrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  .imgrow input[type=file] { max-width: 100%; font-size: .88rem; min-height: 44px; }
+  .pv { border: 1px solid var(--border); border-radius: 8px; background: #dfe5ee; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .pv canvas { width: 100%; height: auto; display: block; box-shadow: 0 1px 4px rgba(0,0,0,.25); background: #fff; }
+  .guide { font-size: .9rem; }
+  .guide ul, .guide ol { padding-left: 1.3em; margin: 6px 0; }
+  .guide li { margin: 4px 0; }
+  .locked-panel { border: 1px dashed var(--locked); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); background: #f5f8fc; }
+  .locked-panel .lead { color: var(--text); font-weight: bold; }
+  .locked-panel .feat-list { text-align: left; max-width: 620px; margin: 10px auto; font-size: .88rem; padding-left: 1.2em; }
+  .buy-btn { display: inline-block; margin-top: 8px; background: var(--accent-dark); color: #fff; font-weight: bold; padding: 11px 22px; border-radius: 999px; text-decoration: none; font-size: .9rem; }
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 40px; font-size: .84rem; color: var(--muted); }
+  footer p { margin: 10px 0; }
+  footer a { color: var(--muted); display: inline-block; padding: 10px 0; }
+  #printArea { display: none; }
+  .jump { display: none; margin-top: 6px; font-size: .95rem; padding: 10px 0; min-height: 44px; }
+  #bar { display: none; }
+  @media (min-width: 861px) {
+    #pv-card { max-height: calc(100vh - 24px); overflow: auto; }
+    .pv canvas { max-height: calc(100vh - 330px); width: auto; max-width: 100%; }
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "info" "iss" "itm" "chk" "pv"; }
+    #pv-card { position: static; }
+    .jump { display: inline-flex; align-items: center; }
+    body { padding-bottom: 64px; }
+    #bar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--accent-dark); color: #fff; align-items: center; gap: 10px; padding: 8px 12px; font-size: .9rem; }
+    #bar span { flex: 1; }
+    #bar a { color: #fff; font-weight: bold; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid #fff; border-radius: 8px; text-decoration: none; }
+  }
+  @media (max-width: 600px) {
+    .row2, .row3 { flex-direction: column; gap: 0; }
+    section.card { padding: 16px 12px; }
+    .pv { padding: 4px; }
+    .item { padding: 8px; }
+    .item .nums { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .item .c-q, .item .c-u, .item .c-r { grid-column: span 2; }
+    .item .c-p, .item .c-a { grid-column: span 3; }
+    .item .top { flex-wrap: wrap; align-items: center; }
+    .item .top .nm { order: 3; flex: 1 1 100%; }
+    .item .acts { margin-left: auto; }
+    .item .no { padding-bottom: 0; text-align: left; }
+    .item .c-q { order: 1; } .item .c-u { order: 2; } .item .c-r { order: 3; } .item .c-p { order: 4; } .item .c-a { order: 5; }
+  }
+  @media print {
+    body.printing > * { display: none !important; }
+    body.printing > #printArea { display: block !important; }
+    #printArea img, #printArea canvas { display: block; break-after: page; }
+    #printArea > :last-child { break-after: auto; }
+    body:not(.printing) > * { display: none !important; }
+    body { padding-bottom: 0 !important; }
+    #bar, .upsell-toast { display: none !important; }
+    body:not(.printing)::after { content: "見積書は、ページの「印刷する」ボタンから印刷してください。"; display: block; padding: 20mm; font-size: 14pt; }
+  }
+</style>
+<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
+<!--ANSHIN_CSS_START--><style>:root{--anshin-w:1088px;--anshin-pad:16px}.anshin-strip,.anshin{box-sizing:border-box;width:min(var(--anshin-w),calc(100% - 2 * var(--anshin-pad)));margin-left:auto;margin-right:auto}.anshin-strip{list-style:none;margin-top:10px;margin-bottom:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.8rem;line-height:1.5}.anshin-strip li{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:999px;background:rgba(20,120,90,.07)}.anshin-strip li.anshin-more{border:0;background:none;padding:3px 2px}.anshin-strip a,.anshin a{color:inherit}.anshin{margin-top:18px;margin-bottom:18px;padding:14px 18px;border:1px solid rgba(20,120,90,.45);border-radius:10px;background:rgba(20,120,90,.05);font-size:.86rem;line-height:1.7}.anshin h2{font-size:1rem;margin:0 0 6px}.anshin p{margin:0 0 6px}.anshin ul{margin:0;padding-left:1.2em}.anshin li{margin:3px 0}.anshin details{margin-top:6px}.anshin summary{cursor:pointer;font-weight:bold}.anshin .anshin-meta{margin:8px 0 0;font-size:.8rem;opacity:.85}@media print{.anshin,.anshin-strip{display:none!important}}</style><!--ANSHIN_CSS_END-->
+<!--UPSELL_CSS_START--><style>.upsell-top{box-sizing:border-box;width:min(var(--anshin-w,880px),calc(100% - 2 * var(--anshin-pad,16px)));margin:12px auto 0;font-size:.85rem;line-height:1.6}.upsell-top a{color:inherit}.upsell-assure{list-style:none;margin:12px 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;font-size:.8rem;line-height:1.5}.upsell-assure li{padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:12px;background:rgba(20,120,90,.06)}.upsell-terms{margin:8px 0 0;font-size:.78rem;line-height:1.6;opacity:.85}.upsell-toast{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9999;box-sizing:border-box;width:min(520px,calc(100% - 24px));padding:14px 56px 14px 16px;border-radius:12px;background:#fff;color:#222;border:1px solid #c9c2d6;box-shadow:0 6px 24px rgba(0,0,0,.18);font-size:.88rem;line-height:1.6}.upsell-toast p{margin:0 0 6px;font-weight:bold}.upsell-toast ul{margin:0 0 10px;padding-left:1.2em}.upsell-toast li{margin:2px 0}.upsell-toast .upsell-note{display:block;margin-top:6px;font-size:.75rem;color:#555}.upsell-toast .upsell-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:8px;background:#c9283e;color:#fff;font-weight:bold;text-decoration:none}.upsell-toast.upsell-calm .upsell-go{background:#3f4a63}.upsell-toast .upsell-go:focus-visible,.upsell-toast .upsell-x:focus-visible{outline:3px solid #2560c4;outline-offset:2px}.upsell-toast .upsell-x{position:absolute;top:4px;right:4px;width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:#555;font-size:1.3rem;line-height:1;cursor:pointer}.upsell-inline{white-space:nowrap;color:inherit;text-decoration:underline;text-underline-offset:2px}@media print{.upsell-top,.upsell-assure,.upsell-terms,.upsell-toast,.upsell-inline{display:none!important}}</style><!--UPSELL_CSS_END-->
+<!--JSONLD_START--><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"見積書メーカー(計算チェックつき)","url":"https://uuhai0625.github.io/mitsumorisho-maker/","description":"見積書を無料・登録不要で作成。品名・数量・単価を入れると、10%と8%(軽減)の税率ごとに消費税と合計を計算し、A4の見積書を印刷・画像で保存できます。Excelの表の貼り付け、金額と数量×単価の照合、元の見積書の合計が合うかの確かめ(税率ごと・行ごと、切り捨て・四捨五入・切り上げ)つき。無料版は明細15行まで。スマホでも使えます。","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","inLanguage":"ja","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Person","name":"uuhai0625","url":"https://uuhai0625.github.io/"}}</script><!--JSONLD_END-->
+</head>
+<body>
+
+<header>
+  <h1>見積書メーカー<span class="nb">(計算チェックつき)</span></h1>
+  <p>品名・数量・単価を入れると、税率ごとの消費税と合計を計算して、A4の見積書を作れます。Excelの表の貼り付けや、元の見積書の小計・消費税・合計が合っているかの確かめもできます。登録不要・スマホでも使えます。</p>
+  <p class="sub">税込・税抜の表示や端数処理は、会社の決まりに合わせて選びます。税務の判断はしません。</p>
+</header>
+<!--ANSHIN_STRIP_START-->
+<ul class="anshin-strip" aria-label="データの扱い">
+  <li><span aria-hidden="true">✓</span> 入力内容はこの端末の中だけで処理</li>
+  <li><span aria-hidden="true">✓</span> 登録・ログイン不要</li>
+  <li><span aria-hidden="true">✓</span> 仕組みを公開中</li>
+  <li class="anshin-more"><a href="#anshin">データの扱いをくわしく</a></li>
+</ul>
+<!--ANSHIN_STRIP_END-->
+<!--UPSELL_TOP_START--><p class="upsell-top no-print" id="upsellTop">このページは無料のまま使えます。機能を増やしたい方は <a href="#pro-section">買い切り版(¥100・1回払い)<span aria-hidden="true"> ↓</span></a></p><!--UPSELL_TOP_END-->
+<div class="entry" id="entry">
+  <button type="button" class="btn primary" id="goMake">見積書を作る</button>
+  <button type="button" class="btn" id="goCheck">合計が合っているか確かめる</button>
+</div>
+
+<main>
+<div class="layout">
+
+  <section class="card" id="info-card">
+    <h2>1. 宛先と見積の内容</h2>
+    <p class="note" id="keepNote">入れた内容はどこにも送信されません(このブラウザの中だけで処理します)。</p>
+    <div class="field">
+      <label class="lbl" for="inTo">宛先(お客さまの名前)</label>
+      <div class="inl">
+        <input type="text" id="inTo" maxlength="40" placeholder="例: 株式会社さくら商事" autocomplete="off">
+        <select id="inSuffix" aria-label="宛先の敬称"><option value="御中" selected>御中</option><option value="様">様</option><option value="">付けない</option></select>
+      </div>
+      <span class="hint">会社・部署あては「御中」、人あては「様」です。</span>
+      <span class="hint w" id="toWarn"></span>
+    </div>
+    <label class="field"><span class="lbl">件名</span><input type="text" id="inSubj" maxlength="40" placeholder="例: 創業10周年イベントの運営" autocomplete="off"></label>
+    <div class="row2">
+      <label class="field"><span class="lbl">見積番号</span><input type="text" id="inNo" maxlength="20" placeholder="例: 2026-1120-01" autocomplete="off"></label>
+      <label class="field"><span class="lbl">見積日</span><input type="date" id="inDate"></label>
+    </div>
+    <div class="row2">
+      <div class="field"><label class="lbl" for="inValid">有効期限</label><input type="date" id="inValid"><button type="button" class="btn small" id="validBtn" style="margin-top:4px">見積日の30日後にする</button></div>
+      <label class="field"><span class="lbl">納期</span><input type="text" id="inDeliv" maxlength="30" placeholder="例: 2027年1月15日、ご注文から2週間" autocomplete="off"></label>
+    </div>
+    <div class="row2">
+      <label class="field"><span class="lbl">お支払い条件</span><input type="text" id="inPay" maxlength="30" placeholder="例: 月末締め翌月末払い" autocomplete="off"></label>
+      <label class="field"><span class="lbl">受け渡し場所(なくても可)</span><input type="text" id="inPlace" maxlength="30" placeholder="例: 貴社指定場所" autocomplete="off"></label>
+    </div>
+    <label class="field"><span class="lbl">備考</span><textarea id="inNote" maxlength="300" placeholder="例: 交通費は実費でご請求します。" spellcheck="false"></textarea><span class="hint">見積書のいちばん下に入ります(300字まで)。</span></label>
+    <div class="status" id="infoSt" role="status"></div>
+    <div class="btn-row" style="margin-top:0" id="sampleRow"><button type="button" class="btn small" id="sampleBtn">例を入れて試す</button></div>
+    <details class="box" id="dataBox">
+      <summary>保存・ほかの端末へ移す・全部消す</summary>
+      <label class="chk"><input type="checkbox" id="chkKeep" checked> このブラウザに自動で保存する</label>
+      <span class="hint" id="keepHint">保存しても、ブラウザの閲覧データを消したときや、長いあいだ開かなかったとき(iPhoneのSafariでは7日ほど)に消えることがあります。決まったら、印刷か画像で残しておくと安心です。共用のパソコンでは、チェックを外します。</span>
+      <p class="fine">「引き継ぎ用の文をコピー」を押してメモ帳やメールに残しておくと、あとで下の欄に貼り付けて続きから作れます。無料版と買い切り版のあいだでも移せます(ロゴ・角印の画像は入りません)。</p>
+      <div class="btn-row" style="margin-top:4px"><button type="button" class="btn small" id="expBtn">引き継ぎ用の文をコピー</button></div>
+      <label class="field" style="margin-top:8px"><span class="lbl">引き継ぎ用の文を貼り付け</span><textarea id="inImp" maxlength="200000" spellcheck="false" style="min-height:70px" placeholder="ここに貼り付けます"></textarea></label>
+      <div class="btn-row" style="margin:0 0 8px">
+        <button type="button" class="btn small" id="impBtn">今の入力と入れ替える</button>
+        <button type="button" class="btn small" id="clearBtn">入力を全部消す</button>
+      </div>
+      <div class="status" id="dataSt" role="status"></div>
+    </details>
+    <details class="box" id="savedBox">
+      <summary id="savedSum">見積を名前をつけて保存・複製</summary>
+      <p class="fine" style="margin-top:0">保存した見積は「開く」で入れ替え、「複製」で見積日を今日にした写しを作って、次の見積に使えます。このブラウザに保存します。</p>
+      <label class="field"><span class="lbl">保存する名前</span><input type="text" id="saveName" maxlength="30" placeholder="空なら件名と宛先" autocomplete="off"></label>
+      <div class="btn-row" style="margin-top:0"><button type="button" class="btn small primary" id="saveQBtn">今の見積を保存する</button></div>
+      <div class="saved" id="savedList"></div>
+      <div class="status" id="savedSt" role="status"></div>
+    </details>
+  </section>
+
+  <section class="card" id="iss-card">
+    <h2>2. 発行者(自分の会社)</h2>
+    <div class="row2">
+      <label class="field"><span class="lbl">会社名・屋号</span><input type="text" id="inCo" maxlength="40" placeholder="例: 株式会社ウーハイ企画" autocomplete="organization"><span class="hint w" id="coWarn"></span></label>
+      <label class="field"><span class="lbl">担当者</span><input type="text" id="inPerson" maxlength="30" placeholder="例: 営業部 山田" autocomplete="off"></label>
+    </div>
+    <label class="field"><span class="lbl">住所</span><input type="text" id="inAddr" maxlength="60" placeholder="例: 〒100-0001 東京都千代田区○○1-2-3" autocomplete="off"></label>
+    <div class="row2">
+      <label class="field"><span class="lbl">電話</span><input type="text" id="inTel" maxlength="20" placeholder="例: 03-0000-0000" autocomplete="off"></label>
+      <label class="field"><span class="lbl">メール</span><input type="text" id="inMail" maxlength="60" placeholder="例: info@example.jp" autocomplete="off"></label>
+    </div>
+    <label class="field"><span class="lbl">登録番号(なくても可)</span><input type="text" id="inReg" maxlength="20" placeholder="例: T1234567890123" autocomplete="off"><span class="hint">インボイスの登録番号です。見積書に書くかどうかは、会社の決まりに合わせます。</span></label>
+    
+  </section>
+
+  <section class="card" id="itm-card">
+    <h2>3. 明細と消費税</h2>
+    <div class="set">
+      <span class="lbl" id="tinL">金額の入れ方</span>
+      <div class="modes" role="radiogroup" aria-labelledby="tinL">
+        <label><input type="radio" name="tin" value="ext" checked> 税抜で入れる(外税)</label>
+        <label><input type="radio" name="tin" value="inc"> 税込で入れる(内税)</label>
+      </div>
+    </div>
+    <div class="set">
+      <span class="lbl" id="tcalcL">消費税の計算</span>
+      <div class="modes" role="radiogroup" aria-labelledby="tcalcL">
+        <label><input type="radio" name="tcalc" value="total" checked> 税率ごとに合計して1回</label>
+        <label><input type="radio" name="tcalc" value="line"> 行ごとに計算して足す</label>
+      </div>
+    </div>
+    <div class="set">
+      <span class="lbl" id="trmL">1円未満の端数</span>
+      <div class="modes" role="radiogroup" aria-labelledby="trmL">
+        <label><input type="radio" name="trm" value="floor" checked> 切り捨て</label>
+        <label><input type="radio" name="trm" value="round"> 四捨五入</label>
+        <label><input type="radio" name="trm" value="ceil"> 切り上げ</label>
+      </div>
+      <span class="hint" id="setHint"></span>
+    </div>
+    <h3 id="itemHead" tabindex="-1">明細(0行)</h3>
+    <span class="hint">金額が空の行は、数量×単価を入れます(数量が空なら1)。金額を書いた行は、数量×単価と比べて、ちがえば赤い枠と差額が出ます。値引き・出精値引きは、単価か金額を「-5,000」のようにマイナスで入れます。10%と8%の両方にかかる値引きは、税率ごとに分けて2行で入れます。</span>
+    <div class="items" id="items"></div>
+    <div class="btn-row"><button type="button" class="btn" id="addBtn">行を足す</button></div>
+    <div class="status" id="itmSt" role="status"></div>
+    <details class="box" id="pasteBox">
+      <summary>Excel・スプレッドシートの表を貼り付ける</summary>
+      <label class="field"><span class="lbl">表を貼り付け</span><textarea id="inPaste" maxlength="200000" spellcheck="false" placeholder="例:&#10;品名	数量	単位	単価	金額&#10;デザイン費	1	式	120,000	120,000&#10;撮影	2	時間	¥15,000	30000"></textarea><span class="hint">Excelやスプレッドシートでセルを選んでコピーし、ここに貼ります。1行目に見出し(品名・数量・単位・単価・金額・税率)があれば、列の場所を自動で読みます。見出しがなければ「品名・数量・単位・単価・金額」の順として読みます。「¥」「円」「,」、全角の数字も読めます。「小計」「消費税」「合計」の行は、明細に入れず「4. 見積書の計算チェック」の欄に入れます。</span></label>
+      <label class="chk"><input type="checkbox" id="chkReplace" checked> 今の明細を消してから入れる</label>
+      <div class="btn-row" style="margin:4px 0 10px"><button type="button" class="btn small primary" id="pasteBtn">表の行を明細に入れる</button></div>
+    </details>
+    <div class="sum" id="sumBox"></div>
+    <div class="status" id="warnNote" role="status"></div>
+    <a class="jump" href="#pv-card">見本・印刷へ ↓</a>
+  </section>
+
+  <section class="card" id="chk-card">
+    <h2>4. 見積書の計算チェック(計算間違い・端数の確認)</h2>
+    <p class="fine" style="margin-top:0">ほかの人やExcelで作った見積書の数字が合っているか確かめるときに使います。明細を入れて(貼り付けて)から、元の見積書に書いてある額を入れます。空の欄は比べません。</p>
+    <div class="row3">
+      <label class="field"><span class="lbl">小計(税抜)</span><input type="text" id="chkSub" maxlength="16" autocomplete="off" placeholder="例: 259,450"></label>
+      <label class="field"><span class="lbl">消費税</span><input type="text" id="chkTax" maxlength="16" autocomplete="off" placeholder="例: 25,216"></label>
+      <label class="field"><span class="lbl">合計(税込)</span><input type="text" id="chkTotal" maxlength="16" autocomplete="off" placeholder="例: 284,666"></label>
+    </div>
+    <div class="chkres" id="chkOut" role="status"></div>
+  </section>
+
+  <section class="card" id="pv-card">
+    <h2>5. 見本・印刷</h2>
+    <p class="status" id="sumNote"></p>
+    <label class="field hidden" id="pageField"><span class="lbl">見本のページ</span><select id="inPage"></select></label>
+    <div class="btn-row" style="margin-top:4px">
+      <button type="button" class="btn primary" id="printBtn">印刷する</button>
+      <button type="button" class="btn" id="pngBtn">画像で保存</button>
+    </div>
+    <div class="btn-row" style="margin-top:6px">
+      <button type="button" class="btn" id="copyBtn">明細を表としてコピー</button>
+      
+      <button type="button" class="btn" id="bigBtn">見本を大きく見る</button>
+    </div>
+    <div class="status" id="outSt" role="status"></div>
+    <div class="pv" id="pv"></div>
+    <p class="fine">A4縦で印刷します。画像で保存すると、メールやチャットに付けて送れます。「表としてコピー」は、Excelにそのまま貼れる形でコピーします。「見本を大きく見る」は新しいタブで開きます。</p>
+    <a class="jump" href="#itm-card">明細へ ↑</a>
+  </section>
+
+</div>
+
+  <section class="card guide" id="guide">
+    <h2>使い方</h2>
+    <ol>
+      <li>宛先・件名・見積日などと、発行者(自分の会社)を入れます。</li>
+      <li>明細に、品名・数量・単位・単価・税率を入れます。Excelやスプレッドシートの表は、そのまま貼り付けられます。</li>
+      <li>金額の入れ方(税抜・税込)、消費税の計算、端数(切り捨て・四捨五入・切り上げ)を、会社の決まりに合わせて選びます。</li>
+      <li>見本を確かめて、印刷するか画像で保存します。</li>
+      <li>人が作った見積書を確かめるときは、明細を貼り付けてから、「4. 見積書の計算チェック」に、元の見積書に書いてある小計・消費税・合計を入れます。合わないときは、合う計算があれば出します。</li>
+    </ol>
+    <h3>計算のしかた</h3>
+    <ul>
+      <li>各行の金額 = 数量×単価(1円未満は、選んだ端数処理)。金額を書いた行は、数量×単価の切り捨て・四捨五入・切り上げのどれかと同じなら合っているとみなします。</li>
+      <li>「税率ごとに合計して1回」: 10%の行・8%の行をそれぞれ合計してから消費税を出し、端数処理は税率ごとに1回だけです。インボイス(適格請求書)と同じ考え方です。</li>
+      <li>「行ごとに計算して足す」: 行ごとに消費税を出して端数処理し、それを足します。インボイスの請求書では、この方法で出した消費税は記載額にできません(国税庁Q&amp;A問57)。</li>
+      <li>税込で入れる(内税)ときは、税率ごとの合計から消費税を割り戻します(10%は ×10/110、8%は ×8/108)。</li>
+      <li>8%の行には「※」を付け、見積書に「※は軽減税率(8%)対象です」を入れます。</li>
+    </ul>
+    <h3>よくある質問</h3>
+    <ul>
+      <li id="faqPhone"></li>
+      <li id="faqCount"></li>
+      <li><strong>消費税の端数は、切り捨て・四捨五入・切り上げのどれ?</strong> 法律でどれと決まってはいないので、会社の決まりに合わせて選びます。見積書は、ふつうインボイス(適格請求書)として出すものではありませんが、あとで出す請求書と同じ計算にそろえておくと、見積と請求で金額が食い違いません。</li>
+      <li><strong>計算が合わないと出たら?</strong> 「4. 見積書の計算チェック」で、合う計算(税率ごと・行ごと、切り捨て・四捨五入・切り上げ、税抜・税込)があれば出します。1行の税率ちがい・入れ忘れ・金額の書きまちがいで合うときも、その行を出します。どれでも合わないときは、行の金額・税率・入れ忘れの行を確かめると安心です。</li>
+      <li><strong>出精値引きはどう入れる?</strong> 品名を「出精値引き」にして、単価か金額をマイナスで入れます。値引きの税率は、値引きする品と同じにします。10%と8%の両方にかかる値引きは、税率ごとに分けて2行で入れます。</li>
+      <li><strong>入れた内容はどこかに送られる?</strong> どこにも送られません。すべてこのブラウザの中で処理し、「このブラウザに自動で保存する」にチェックがあるときだけ、このブラウザに保存します。</li>
+    </ul>
+  </section>
+
+  <section class="card" id="pro-section">
+    <h2>明細が多い見積に <span class="badge">買い切り版 ¥100(税込)</span></h2>
+    <div class="locked-panel">
+      <p class="lead">明細は100行まで、ロゴ・角印も入れられ、見積は30件まで保存できます。</p>
+      <p>このページの機能は無料でそのまま使えます。買い切り版(ダウンロード購入)では、次の機能が増えます:</p>
+      <ul class="feat-list">
+        <li><strong>明細を100行まで</strong>(無料版は15行まで)。2枚以上に分けて印刷し、2枚目からは「明細の続き」と、前のページからの繰越の額を入れます</li>
+        <li><strong>会社のロゴ・角印の画像を入れる</strong>(画像はブラウザの中だけで扱います)</li>
+        <li><strong>見積を名前をつけて30件まで保存</strong>(無料版は3件まで)</li>
+        <li><strong>CSVで保存</strong>(Excelで開けます)・<strong>2枚以上の画像はZIPファイル1つにまとめて保存</strong>・<strong>ツール名が入りません</strong>(無料版は用紙の右下に小さく入ります)</li>
+        <li><strong>パソコンで使うHTMLファイルです</strong>(スマホではファイルを開けない機種があります)。ダウンロードしたファイルなので、ネットにつながっていなくても開けます。無料版で入れた見積は「引き継ぎ用の文」で移せます</li>
+      </ul>
+<!--UPSELL_ASSURE_START--><ul class="upsell-assure" aria-label="買い切り版について"><li>¥100(税込)の1回払い・月額なし</li><li>パソコン向けのHTMLファイル(スマホでは開けない機種あり)</li><li>ネットにつながっていなくても動く</li><li>BOOTHで購入(クレジットカード・楽天ペイは手数料なし、コンビニ・銀行払いは別途手数料)</li></ul><!--UPSELL_ASSURE_END-->
+      <a class="buy-btn" href="https://uuhai0625.booth.pm/items/9186099" id="buyLink" target="_blank" rel="noopener">パソコン用の買い切り版を見る(BOOTH・新しいタブ)</a><!--UPSELL_TERMS_START--><p class="upsell-terms">販売者の情報・返品などの販売条件は、BOOTHの商品ページでご確認ください。BOOTHでの購入にはpixivのアカウントが必要です。</p><!--UPSELL_TERMS_END-->
+    </div>
+  </section>
+
+</main>
+
+<!--ANSHIN_START-->
+<section class="anshin" id="anshin" aria-labelledby="anshin-title">
+  <h2 id="anshin-title">データの扱いについて</h2>
+  <p>このページには、入力した内容を受け取る仕組みがありません。入力した文字や数字は、あなたのスマホやパソコンの中だけで処理されます。</p>
+  <ul>
+    <li>会員登録・ログイン・メールアドレスの入力はありません。</li>
+    <li>自分で確かめたい方へ: ページを開いたあと機内モードにしても、そのまま使えます。</li>
+  </ul>
+  <details>
+    <summary>もっとくわしく(保存・アクセス解析・公開について)</summary>
+    <ul>
+      <li>保存されるデータは、この端末のこのブラウザの中にだけ残ります(localStorage・sessionStorage)。共用のパソコンでは使い終わったら消してください。</li>
+      <li>アクセス解析(Google Analytics)のため、見たページのURL・参照元・端末やブラウザの種類・おおよその地域(IPアドレスから推定)・Cookieの識別子・BOOTHへのリンクのクリック・どのボタンを押したか(回数や選んだ設定を含む)がGoogleに送られます。目的は利用状況の把握です。入力した文字や画像は送りません。(<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用</a>/<a href="https://tools.google.com/dlpage/gaoptout?hl=ja" target="_blank" rel="noopener">計測を止めるアドオン</a>。止めてもツールはそのまま使えます)</li>
+      <li>金額・税の計算は目安です。出す前に、社内の決まり(端数処理・税込・税抜の表示)に合わせて確認してください。</li>
+      <li>処理の中身はすべて公開しています(詳しい方向け: <a href="https://github.com/uuhai0625/mitsumorisho-maker" target="_blank" rel="noopener">GitHub</a>)。</li>
+    </ul>
+  </details>
+  <p class="anshin-meta">作っている人: ウーハイ(個人開発)/不具合・ご質問は<a href="https://x.com/uuhai0625" target="_blank" rel="noopener">X(@uuhai0625)</a>へ/<a href="https://uuhai0625.github.io/" target="_blank" rel="noopener">ほかのツール</a>/この説明の更新日: 2026-11-20</p>
+</section>
+<!--ANSHIN_END-->
+
+<footer>
+  <p id="privacyNote">入力した内容はどこにも送信されません(すべてこのブラウザの中で処理し、保存のチェックがあるときだけ、このブラウザに保存します)。</p>
+  <p><a href="https://uuhai0625.booth.pm/" target="_blank" rel="noopener">ほかのツールも見る(BOOTHショップ)</a></p>
+  <p>不具合・ご要望は X <a href="https://x.com/uuhai0625" target="_blank" rel="noopener">@uuhai0625</a> まで。</p>
+  <p class="related-tools no-print">関連するツール: <a href="https://uuhai-keisan.github.io/santen-mitsumori/" target="_blank" rel="noopener">三点見積もりの計算機(別サイト「uuhai計算帳」)</a> ・ <a href="https://uuhai0625.github.io/scope-change-pack/" target="_blank" rel="noopener">仕様変更・追加見積り協議パック</a> ・ <a href="https://uuhai0625.github.io/#free-tools">ツール一覧</a></p>
+</footer>
+
+<div id="bar" aria-hidden="true"><span id="barText"></span><a href="#pv-card" tabindex="-1">見本・印刷へ</a></div>
+<div id="printArea"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var EDITION = "free"; // "full" で買い切り完全版
+
+  function track(name, params) {
+    if (!window.dataLayer) return;
+    (function () { window.dataLayer.push(arguments); })("event", name, params || {});
+  }
+  var $ = function (id) { return document.getElementById(id); };
+  function setSt(id, msg, err) { var e = $(id); if (!e) return; if (e.dataset.msg !== msg || e.textContent.indexOf(msg) !== 0) { e.textContent = msg; e.dataset.msg = msg; } e.classList.toggle("err", !!err); }
+  function setSt2(id, ok, warn) { var e = $(id); e.textContent = ""; e.dataset.msg = ""; e.classList.remove("err"); if (ok) e.appendChild(document.createTextNode(ok)); if (warn) { var s = document.createElement("span"); s.className = "w"; s.textContent = warn; e.appendChild(s); } }
+  function has(o, k) { return typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k); }
+  function cell(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+
+  var CREDIT = true, MAXR = 15, FULL = false, MAXSAVE = 3;
+  
+  var STORE = EDITION === "full" ? "uuhai-mitsumori-v1-full" : "uuhai-mitsumori-v1";
+  var FONT = '"BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif';
+  var INK = "#1f1f1f", LINE = "#8a8f99", HEAD = "#1f3f6e", TINT = "#e9eef7";
+  var IMG = { logo: null, stamp: null };
+
+  // ===== 文字・数 =====
+  function okCh(ch) { var c = ch.codePointAt(0); return c >= 32 && c !== 0x7f && !(c >= 0x200B && c <= 0x200D) && c !== 0xFEFF && !(c >= 0x202A && c <= 0x202E) && !(c >= 0x2066 && c <= 0x2069); }
+  function clean(s, n) {
+    var t = Array.from(String(s == null ? "" : s)).filter(okCh).join("").replace(/\s+/g, " ").trim();
+    return Array.from(t).slice(0, n).join("");
+  }
+  // 備考は改行を残す(6行まで)
+  function cleanML(s, n) {
+    var t = String(s == null ? "" : s).replace(/\r\n?/g, "\n").split("\n").map(function (l) { return clean(l, n); });
+    while (t.length && !t[t.length - 1]) t.pop();
+    return Array.from(t.slice(0, 8).join("\n")).slice(0, n).join("");
+  }
+  // 「1,200」「¥1,200」「1200円」「１２００」「-5,000」「△5,000」「12.5」を数にする。空なら null、読めなければ NaN
+  // 整数部は12桁まで・小数は4桁まで(合わせて15桁まで)。それより大きい数は読まない(計算がずれないように)
+  function numD(v) {
+    var t = String(v == null ? "" : v).normalize("NFKC").replace(/[\s¥￥"]/g, "").replace(/円$/, "");
+    if (!t) return null;
+    var neg = /^[-−△▲]/.test(t); if (neg) t = t.replace(/^[-−△▲]+/, "");
+    if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) t = t.replace(/,/g, "");
+    if (!/^\d{1,12}(\.\d{1,4})?$/.test(t) || t.replace(/\D/g, "").replace(/^0+/, "").length > 15) return NaN;
+    var n = parseFloat(t); return neg && n ? -n : n;
+  }
+  function numI(v) { var n = numD(v); return n === null || isNaN(n) ? n : n === Math.round(n) ? n : NaN; }
+  function fmt(n) { return Math.round(n).toLocaleString("ja-JP"); }
+  function fmtD(n) { return n.toLocaleString("ja-JP", { maximumFractionDigits: 4 }); }
+  function okDate(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); if (!m) return false; var dt = new Date(+m[1], +m[2] - 1, +m[3]); return dt.getMonth() === +m[2] - 1 && dt.getDate() === +m[3]; }
+  function ymd(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); return m ? m[1] + "年" + (+m[2]) + "月" + (+m[3]) + "日" : ""; }
+  function iso(dt) { return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0"); }
+  function today() { return iso(new Date()); }
+  function addDays(d, n) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return iso(new Date(+m[1], +m[2] - 1, +m[3] + n)); }
+
+  // ===== 端数処理 =====
+  var RM = { floor: "切り捨て", round: "四捨五入", ceil: "切り上げ" };
+  // n(整数)/d(正の整数)を端数処理する。マイナスは絶対値で処理して符号を戻す
+  function rdiv(n, d, mode) {
+    var neg = n < 0, a = Math.abs(n), q = Math.floor(a / d), r = a - q * d;
+    if (mode === "ceil" && r > 0) q++; else if (mode === "round" && 2 * r >= d) q++;
+    return neg ? -q : q;
+  }
+  function rnum(x, mode) {
+    x = Math.round(x * 1e6) / 1e6;
+    var neg = x < 0, a = Math.abs(x), f = Math.floor(a), fr = Math.round((a - f) * 1e6);
+    var q = mode === "ceil" ? (fr > 0 ? f + 1 : f) : mode === "round" ? (fr >= 500000 ? f + 1 : f) : f;
+    return neg ? -q : q;
+  }
+
+  // ===== 明細 =====
+  // 行: { id, name, q, unit, p, a, rate } (q・p・a は入れた文字のまま持つ)
+  var RATES = { "10": "10%", "8": "8%(軽減)", "0": "非課税・対象外" }, RATE_OPT = { "10": "10%", "8": "8%(軽減)", "0": "非課税等" };
+  var items = [], nextId = 1;
+  function newItem(o) { o = o || {}; return { id: nextId++, name: clean(o.name, 40), q: clean(o.q, 30), unit: clean(o.unit, 8), p: clean(o.p, 30), a: clean(o.a, 30), rate: has(RATES, o.rate) ? o.rate : "10", rq: o.rq ? clean(o.rq, 20) || "?" : "" }; }
+  function itemById(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i]; return null; }
+  function sets() {
+    function rv(n, d) { var r = document.querySelector('input[name="' + n + '"]:checked'); return r ? r.value : d; }
+    return { inc: rv("tin", "ext") === "inc", line: rv("tcalc", "total") === "line", rm: has(RM, rv("trm", "floor")) ? rv("trm", "floor") : "floor" };
+  }
+  function rowCalc(it, rm, useCalc) {
+    var q = numD(it.q), p = numD(it.p), a = numI(it.a), bad = [];
+    if (isNaN(q)) bad.push("q"); if (isNaN(p)) bad.push("p"); if (isNaN(a)) bad.push("a");
+    var qq = q === null || isNaN(q) ? (p !== null && !isNaN(p) ? 1 : null) : q;
+    var exact = p === null || isNaN(p) || qq === null ? null : Math.round(qq * p * 1e6) / 1e6;
+    if (exact !== null && Math.abs(exact) >= 1e12) { bad.push("big"); exact = null; }
+    var calc = exact === null ? null : rnum(exact, rm);
+    var written = a === null || isNaN(a) ? null : a;
+    var ok = written === null || exact === null || written === rnum(exact, "floor") || written === rnum(exact, "round") || written === rnum(exact, "ceil");
+    var used = useCalc && calc !== null ? calc : written !== null ? written : calc !== null ? calc : 0;
+    var name = clean(it.name, 40);
+    return { id: it.id, name: name, unit: clean(it.unit, 8), rate: it.rate, q: q, qq: qq, p: p, a: written, calc: calc, used: used, ng: !ok, bad: bad,
+      empty: !name && (q === null || isNaN(q)) && (p === null || isNaN(p)) && (a === null || isNaN(a)) };
+  }
+  function totals(rows, st) {
+    var by = { "10": { base: 0, tax: 0, n: 0 }, "8": { base: 0, tax: 0, n: 0 }, "0": { base: 0, tax: 0, n: 0 } };
+    rows.forEach(function (r) {
+      var g = by[r.rate] || by["10"]; g.base += r.used; g.n++;
+      if (st.line && r.rate !== "0") g.tax += rdiv(r.used * +r.rate, st.inc ? 100 + +r.rate : 100, st.rm);
+    });
+    if (!st.line) ["10", "8"].forEach(function (k) { by[k].tax = rdiv(by[k].base * +k, st.inc ? 100 + +k : 100, st.rm); });
+    var all = by["10"].base + by["8"].base + by["0"].base, tax = by["10"].tax + by["8"].tax;
+    return st.inc ? { by: by, sub: all - tax, tax: tax, total: all } : { by: by, sub: all, tax: tax, total: all + tax };
+  }
+  function rowsFor(rm, useCalc) { return items.map(function (it) { return rowCalc(it, rm, useCalc); }).filter(function (r) { return !r.empty; }); }
+  function setKey(st) { return (st.inc ? "inc_" : "") + (st.line ? "line_" : "total_") + st.rm; }
+  function setText(st) { return (st.inc ? "税込で入れる(内税)" : "税抜で入れる(外税)") + "・" + (st.line ? "行ごとに計算" : "税率ごとに合計して1回") + "・" + RM[st.rm]; }
+
+  function fld(it, k, label, cls, i, max, mode) {
+    var l = cell("label", cls); l.appendChild(cell("span", "mini", label));
+    var x = document.createElement("input"); x.type = "text"; x.maxLength = max; x.autocomplete = "off"; x.dataset.id = it.id; x.dataset.k = k; x.value = it[k];
+    x.setAttribute("aria-label", (i + 1) + "行目の" + label); if (mode) x.inputMode = mode;
+    l.appendChild(x); return l;
+  }
+  function renderItems() {
+    var box = $("items"); box.textContent = "";
+    items.forEach(function (it, i) {
+      var d = cell("div", "item"); d.dataset.id = it.id;
+      var top = cell("div", "top"); top.appendChild(cell("span", "no", String(i + 1)));
+      var nm = fld(it, "name", "品名", "nm", i, 40); top.appendChild(nm);
+      var acts = cell("div", "acts");
+      [["up", "↑", "上へ動かす"], ["down", "↓", "下へ動かす"], ["del", "×", "消す"]].forEach(function (b) {
+        var x = document.createElement("button"); x.type = "button"; x.className = "btn small"; x.textContent = b[1]; x.dataset.act = b[0]; x.dataset.id = it.id;
+        x.setAttribute("aria-label", (i + 1) + "行目を" + b[2]);
+        if ((b[0] === "up" && i === 0) || (b[0] === "down" && i === items.length - 1)) x.disabled = true;
+        acts.appendChild(x);
+      });
+      top.appendChild(acts); d.appendChild(top);
+      var g = cell("div", "nums");
+      g.appendChild(fld(it, "q", "数量", "c-q num", i, 30, "decimal"));
+      g.appendChild(fld(it, "unit", "単位", "c-u", i, 8));
+      g.appendChild(fld(it, "p", "単価(円)", "c-p num", i, 30));
+      var rl = cell("label", "c-r"); rl.appendChild(cell("span", "mini", "税率"));
+      var s = document.createElement("select"); s.dataset.id = it.id; s.dataset.k = "rate"; s.setAttribute("aria-label", (i + 1) + "行目の税率");
+      Object.keys(RATES).forEach(function (r) { var o = document.createElement("option"); o.value = r; o.textContent = RATE_OPT[r]; s.appendChild(o); });
+      s.value = it.rate; rl.appendChild(s); g.appendChild(rl);
+      g.appendChild(fld(it, "a", "金額(円)", "c-a num", i, 30));
+      d.appendChild(g);
+      if (it.rq) { d.classList.add("rq"); d.appendChild(cell("div", "rqmsg", "税率「" + it.rq + "」が読めなかったので、10%にしています。正しい税率を選びます。")); }
+      var msg = cell("div", "rmsg"); msg.id = "rmsg" + it.id; d.appendChild(msg);
+      box.appendChild(d);
+    });
+    $("itemHead").textContent = "明細(" + items.length + "行)";
+  }
+  $("items").addEventListener("input", function (ev) {
+    var x = ev.target; if (!x.dataset || !x.dataset.k) return;
+    var it = itemById(+x.dataset.id); if (!it) return;
+    it[x.dataset.k] = x.dataset.k === "rate" ? (has(RATES, x.value) ? x.value : "10") : x.value;
+    if (x.dataset.k === "rate") { if (it.rq) { it.rq = ""; renderItems(); } refresh(); } else later();
+  });
+  $("items").addEventListener("focusout", function (ev) {
+    var x = ev.target; if (!x.dataset || !/^(q|p|a)$/.test(x.dataset.k || "")) return;
+    var it = itemById(+x.dataset.id); if (!it) return;
+    var v = x.dataset.k === "a" ? numI(x.value) : numD(x.value);
+    if (v !== null && !isNaN(v)) { x.value = x.dataset.k === "a" ? fmt(v) : fmtD(v); it[x.dataset.k] = x.value; }
+  });
+  $("items").addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("button"); if (!b || !b.dataset.act) return;
+    var id = +b.dataset.id, i = items.findIndex(function (x) { return x.id === id; }); if (i < 0) return;
+    flush();
+    if (b.dataset.act === "fix") {
+      var r = rowCalc(items[i], sets().rm); if (r.calc === null) return;
+      items[i].a = fmt(r.calc); renderItems(); refresh(); setSt2("itmSt", (i + 1) + "行目の金額を数量×単価の" + fmt(r.calc) + "円にそろえました。");
+      focusItem(items[i].id, "a"); return;
+    }
+    if (b.dataset.act === "del") {
+      var it = items[i];
+      if ((it.name || it.p || it.a) && !window.confirm((i + 1) + "行目(" + (clean(it.name, 40) || "品名なし") + ")を消しますか?")) return;
+      items.splice(i, 1); renderItems(); refresh(); setSt2("itmSt", (i + 1) + "行目を消しました。");
+      if (items.length) focusItem(items[Math.min(i, items.length - 1)].id, "name"); else $("addBtn").focus();
+      return;
+    }
+    var j = b.dataset.act === "up" ? i - 1 : i + 1; if (j < 0 || j >= items.length) return;
+    var t = items[i]; items[i] = items[j]; items[j] = t;
+    renderItems(); refresh(); setSt2("itmSt", (i + 1) + "行目を" + (j + 1) + "行目に動かしました。");
+    var nb = document.querySelector('#items button[data-act="' + b.dataset.act + '"][data-id="' + id + '"]');
+    if (nb && !nb.disabled) nb.focus(); else focusItem(id, "name");
+  });
+  function focusItem(id, k) { var x = document.querySelector('#items [data-id="' + id + '"][data-k="' + k + '"]'); if (x) x.focus(); }
+  $("addBtn").addEventListener("click", function () {
+    if (items.length >= MAXR) { setSt("itmSt", FULL ? "明細は100行までです。" : "無料版の明細は15行までです(買い切り版は100行まで)。", true); return; }
+    var last = items[items.length - 1];
+    items.push(newItem({ rate: last ? last.rate : "10" })); renderItems(); refresh(); setSt2("itmSt", "");
+    focusItem(items[items.length - 1].id, "name");
+  });
+
+  // ===== 表の貼り付け =====
+  function parseTable(text) {
+    text = String(text).replace(/\r\n?/g, "\n");
+    var d = text.indexOf("\t") >= 0 ? "\t" : null, rows = [], row = [], cur = "", q = false;
+    if (!d) return text.split("\n").map(function (l) { return [l.trim()]; }).filter(function (r) { return r[0]; });
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch === "\t" ? " " : ch; continue; }
+      if (ch === '"' && cur === "") { q = true; continue; }
+      if (ch === d) { row.push(cur); cur = ""; continue; }
+      if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; continue; }
+      cur += ch;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.map(function (r) { return r.map(function (c) { return c.replace(/[\t\n]/g, " ").trim(); }); }).filter(function (r) { return r.some(function (c) { return c; }); });
+  }
+  var HEADS = [["p", /単価/], ["q", /数量|数$|^数/], ["unit", /単位/], ["rate", /税率|税区分|軽減/], ["a", /金額|価格|小計|税抜|合計/], ["name", /品名|品目|内容|摘要|項目|商品|作業|名称/]];
+  function headerMap(r) {
+    var m = {}, hits = 0;
+    r.forEach(function (c, i) { var t = c.normalize("NFKC"); if (t.length > 12) return; for (var k = 0; k < HEADS.length; k++) { if (m[HEADS[k][0]] === undefined && HEADS[k][1].test(t)) { m[HEADS[k][0]] = i; hits++; break; } } });
+    return hits >= 2 && (m.name !== undefined || m.p !== undefined || m.a !== undefined) ? m : null;
+  }
+  // 「8%」「8」「軽減」「※」→8%、「10%」「10」→10%、「非課税」「不課税」「免税」「対象外」「0%」→非課税等。
+  // 「軽減対象外」は10%、「18%」などは8%にしない
+  // 読めない税率は "?"(10%にして行に印を付ける)。空なら null
+  function parseRate(s, name) {
+    var t = String(s || "").normalize("NFKC").replace(/\s/g, "");
+    if (!t) return /※/.test(name || "") ? "8" : null;
+    if (/非軽減|軽減(税率)?の?対象外/.test(t)) return "10";
+    if (/^8(\.0+)?%?$/.test(t)) return "8";
+    // 「軽減」「※」があり、8以外の数字がない(「8%(軽減)」「軽減税率8%」「※」など)
+    if (/軽減|※/.test(t) && !/\d/.test(t.replace(/(^|[^\d.])8(\.0+)?%?/g, "$1"))) return "8";
+    if (/^10(\.0+)?%?$/.test(t) || /^標準(税率)?(10%?)?$/.test(t) || /^10%標準$/.test(t)) return "10";
+    if (/^(非課税|不課税|免税|対象外|非課税・対象外|非課税等|0(\.0+)?%?)$/.test(t) || /^(非課税|不課税|免税)/.test(t)) return "0";
+    return "?";
+  }
+  function lastNum(r) { for (var i = r.length - 1; i >= 0; i--) { var v = numI(r[i]); if (v !== null && !isNaN(v)) return v; } return null; }
+  $("pasteBtn").addEventListener("click", function () {
+    var rows = parseTable($("inPaste").value);
+    if (!rows.length) { setSt("itmSt", "貼り付けた表が空です。Excelなどでセルを選んでコピーしてから貼ります。", true); return; }
+    var map = null, start = 0;
+    for (var h = 0; h < Math.min(3, rows.length); h++) { map = headerMap(rows[h]); if (map) { start = h + 1; break; } }
+    if (!map) map = { name: 0, q: 1, unit: 2, p: 3, a: 4, rate: 5 };
+    var got = [], tot = { sub: null, tax: null, total: null }, skipped = 0;
+    rows.slice(start).forEach(function (r) {
+      function g(k) { return map[k] === undefined ? "" : r[map[k]] || ""; }
+      var name = clean(g("name"), 60), nn = name.normalize("NFKC").replace(/\s/g, "");
+      // 小計・消費税・合計の行は、確かめる欄へ
+      if (/^(小計|消費税|合計|総計|総額|税込|税抜|お見積|御見積|値引後)/.test(nn) || (!nn && r.some(function (c) { return /^(小計|消費税|合計|総額)/.test(c.normalize("NFKC").replace(/\s/g, "")); }))) {
+        var label = nn || r.map(function (c) { return c.normalize("NFKC").replace(/\s/g, ""); }).join(" ");
+        var v = numI(g("a")); if (v === null || isNaN(v)) v = lastNum(r);
+        if (v === null || /対象/.test(label)) return;
+        if (/消費税/.test(label)) tot.tax = (tot.tax || 0) + v;
+        else if (/^(小計|税抜)/.test(label)) tot.sub = v;
+        else tot.total = v;
+        return;
+      }
+      if (/対象/.test(nn) && /%/.test(nn)) return;
+      var q = g("q"), p = g("p"), a = g("a"), unit = clean(g("unit"), 8);
+      var qv = numD(q), pv = numD(p), av = numI(a);
+      if (!name && (qv === null || isNaN(qv)) && (pv === null || isNaN(pv)) && (av === null || isNaN(av))) { skipped++; return; }
+      var rate = parseRate(g("rate"), name) || "10", rq = "";
+      if (rate === "?") { rate = "10"; rq = clean(g("rate"), 20); }
+      got.push({ name: name.replace(/\s*※\s*$/, "").replace(/^※\s*/, ""), q: qv !== null && !isNaN(qv) ? fmtD(qv) : q, unit: unit, p: pv !== null && !isNaN(pv) ? fmtD(pv) : p, a: av !== null && !isNaN(av) ? fmt(av) : a, rate: rate, rq: rq });
+    });
+    var nTot = (tot.sub !== null) + (tot.tax !== null) + (tot.total !== null);
+    if (!got.length && !nTot) { setSt("itmSt", "読み取れる行がありませんでした。列の順(品名・数量・単位・単価・金額)を確かめてください。", true); return; }
+    var replace = $("chkReplace").checked;
+    if (replace && items.some(function (it) { return it.name || it.p || it.a; }) && got.length && !window.confirm("今の明細(" + items.length + "行)を消して、貼り付けた表に入れ替えますか?")) return;
+    if (replace && got.length) items = [];
+    var room = MAXR - items.length, over = Math.max(0, got.length - room);
+    got.slice(0, Math.max(0, room)).forEach(function (o) { items.push(newItem(o)); });
+    if (!items.length) items.push(newItem());
+    if (nTot) { $("chkSub").value = tot.sub === null ? "" : fmt(tot.sub); $("chkTax").value = tot.tax === null ? "" : fmt(tot.tax); $("chkTotal").value = tot.total === null ? "" : fmt(tot.total); }
+    $("inPaste").value = "";
+    renderItems(); refresh();
+    var done = got.length - over, rqN = items.filter(function (it) { return it.rq; }).length;
+    setSt2("itmSt", done + "行を明細に入れました。" + (nTot ? "小計・消費税・合計は「4. 見積書の計算チェック」に入れました。" : ""),
+      (rqN ? "税率が読めない行が" + rqN + "行あり、10%にしています(黄色の行)。" : "") + (over ? (FULL ? "100行" : "無料版は15行") + "までなので、" + over + "行は入っていません。" : "") + (skipped ? "読み取れなかった行が" + skipped + "行あります。" : ""));
+    if (nTot) checkTrack();
+  });
+
+  // ===== 計算 =====
+  function conf() {
+    var C = { to: clean($("inTo").value, 40), suffix: $("inSuffix").value, subj: clean($("inSubj").value, 40), no: clean($("inNo").value, 20),
+      date: okDate($("inDate").value) ? $("inDate").value : "", valid: okDate($("inValid").value) ? $("inValid").value : "",
+      deliv: clean($("inDeliv").value, 30), pay: clean($("inPay").value, 30), place: clean($("inPlace").value, 30), note: cleanML($("inNote").value, 300),
+      co: clean($("inCo").value, 40), person: clean($("inPerson").value, 30), addr: clean($("inAddr").value, 60), tel: clean($("inTel").value, 20), mail: clean($("inMail").value, 60), reg: clean($("inReg").value, 20) };
+    C.st = sets();
+    return C;
+  }
+  function calc(C) {
+    var all = items.map(function (it) { return rowCalc(it, C.st.rm); }), rows = all.filter(function (r) { return !r.empty; });
+    var t = totals(rows, C.st), S = { all: all, rows: rows, t: t };
+    S.has8 = t.by["8"].n > 0; S.has0 = t.by["0"].n > 0;
+    S.rates = ["10", "8", "0"].filter(function (k) { return t.by[k].n > 0; }).join("+") || "none";
+    S.ng = rows.filter(function (r) { return r.ng; }).length;
+    S.mark8 = S.has8 && !/※.*軽減|軽減.*※/.test(C.note);
+    return S;
+  }
+
+  // ===== 描画 =====
+  var M = 15, W = 210, H = 297, BOTTOM = H - 14, RH = 7, SRH = 6.2;
+  var MC = document.createElement("canvas").getContext("2d");
+  function fitFont(ctx, text, maxW, size, bold, min) {
+    var s = size, lo = min || 1.4; ctx.font = (bold ? "bold " : "") + s + "px " + FONT;
+    while (s > lo && ctx.measureText(text).width > maxW) { s = Math.max(lo, s * 0.92); ctx.font = (bold ? "bold " : "") + s + "px " + FONT; }
+    return s;
+  }
+  function clipW(ctx, text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    var a = Array.from(text); while (a.length > 1 && ctx.measureText(a.join("") + "…").width > maxW) a.pop();
+    return a.join("") + "…";
+  }
+  function fitClip(ctx, text, maxW, size, min, bold) { fitFont(ctx, text, maxW, size, bold, min); return clipW(ctx, text, maxW); }
+  function wrapLines(ctx, text, maxW, size, bold) {
+    ctx.font = (bold ? "bold " : "") + size + "px " + FONT; var out = [];
+    String(text).split("\n").forEach(function (par) {
+      var cur = "";
+      Array.from(par).forEach(function (ch) { if (ctx.measureText(cur + ch).width > maxW && cur) { out.push(cur); cur = ""; } cur += ch; });
+      out.push(cur);
+    });
+    return out;
+  }
+  function line(ctx, x1, y1, x2, y2, col, w) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  function yen(n) { return (n < 0 ? "△" : "") + "¥" + fmt(Math.abs(n)) + "-"; }
+  function toLine(C) { return C.to ? C.to + (C.suffix ? " " + C.suffix : "") : ""; }
+  // 宛先: 敬称は別に描くので切れない。名前は1行 → 2行 → 字を小さく → それでも入らなければ最後を「…」
+  var TOW = 104;
+  function toLayout(C) {
+    var name = C.to, sfx = C.suffix || "";
+    function sw(s) { if (!sfx) return 0; MC.font = "bold " + s + "px " + FONT; return MC.measureText(" " + sfx).width; }
+    if (!name) return { lines: [""], size: 5.6, sfx: sfx, cut: false, shrink: false };
+    MC.font = "bold 5.6px " + FONT;
+    if (MC.measureText(name).width + sw(5.6) <= TOW) return { lines: [name], size: 5.6, sfx: sfx, cut: false, shrink: false };
+    for (var s = 4.8; s >= 3.4 - 1e-9; s -= 0.2) {
+      var l = wrapLines(MC, name, TOW, s, true);
+      if (l.length <= 2) { MC.font = "bold " + s + "px " + FONT; if (MC.measureText(l[l.length - 1]).width + sw(s) <= TOW) return { lines: l, size: s, sfx: sfx, cut: false, shrink: s < 4.79 }; }
+    }
+    var l2 = wrapLines(MC, name, TOW, 3.4, true), w2 = TOW - sw(3.4); MC.font = "bold 3.4px " + FONT;
+    return { lines: [l2[0], clipW(MC, l2.slice(1).join(""), w2)], size: 3.4, sfx: sfx, cut: true, shrink: true };
+  }
+  function infoRows(C) {
+    var r = [["件名", C.subj]];
+    if (C.deliv) r.push(["納期", C.deliv]);
+    if (C.place) r.push(["受け渡し場所", C.place]);
+    if (C.pay) r.push(["お支払い条件", C.pay]);
+    if (C.valid) r.push(["有効期限", ymd(C.valid)]);
+    return r;
+  }
+  function issuerLines(C) {
+    var l = [];
+    if (C.addr) l.push(C.addr);
+    if (C.tel) l.push("TEL " + C.tel);
+    if (C.mail) l.push(C.mail);
+    if (C.reg) l.push("登録番号 " + C.reg);
+    if (C.person) l.push("担当 " + C.person);
+    return l;
+  }
+  // 発行者: 右上に押印欄(20mm角)。その横の行は押印欄をよけて書く。会社名は2行まで折り返す
+  var IX = 120, SEAL = 20;
+  function issuerLayout(C) {
+    var iw = W - M - IX, y0 = M + 28 + (IMG.logo ? 17 : 0), seal = { x: W - M - SEAL, y: y0 }, nw = iw - SEAL - 2;
+    function wAt(y) { return y < seal.y + SEAL + 1 ? nw : iw; }
+    var co = { lines: [], size: 4.6, cut: false, shrink: false }, coY = y0 + 4.5;
+    if (C.co) {
+      MC.font = "bold 4.6px " + FONT;
+      if (MC.measureText(C.co).width <= nw) co.lines = [C.co];
+      else {
+        for (var s = 4.6; s >= 3.2 - 1e-9; s -= 0.2) { var l = wrapLines(MC, C.co, nw, s, true); if (l.length <= 2) { co = { lines: l, size: s, cut: false, shrink: s < 4.59 }; break; } }
+        if (!co.lines.length) { var l2 = wrapLines(MC, C.co, nw, 3.2, true); MC.font = "bold 3.2px " + FONT; co = { lines: [l2[0], clipW(MC, l2.slice(1).join(""), nw)], size: 3.2, cut: true, shrink: true }; }
+      }
+    }
+    var lh = co.size + 0.9, y = coY + Math.max(0, co.lines.length - 1) * lh + 2, rows = [];
+    issuerLines(C).forEach(function (t) { y += 4.6; rows.push({ t: t, y: y, w: wAt(y) }); });
+    return { iw: iw, y0: y0, seal: seal, co: co, coY: coY, lh: lh, nw: nw, rows: rows, bottom: Math.max(y, seal.y + SEAL) };
+  }
+  function head1H(C) {
+    var left = M + 48 + infoRows(C).length * 6.5 + 2 + 14;
+    return Math.max(left, issuerLayout(C).bottom) + 6;
+  }
+  function credit(ctx) { if (CREDIT) { ctx.fillStyle = "#8a8a8a"; ctx.font = "2.4px " + FONT; ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.fillText("見積書メーカー", W - 12, H - 7); } }
+  function pageNo(ctx, pg) { if (pg.of > 1) { ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#444"; ctx.font = "3.2px " + FONT; ctx.fillText((pg.idx + 1) + " / " + pg.of, W / 2, H - 9); } }
+  function drawImgFit(ctx, im, x, y, w, h, alignRight) {
+    var s = Math.min(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s;
+    ctx.drawImage(im, alignRight ? x + w - dw : x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  }
+  function drawHead1(ctx, C, S) {
+    ctx.fillStyle = INK; ctx.textBaseline = "alphabetic";
+    // 右上: 見積番号・見積日
+    ctx.textAlign = "right"; ctx.font = "3.2px " + FONT;
+    if (C.no) ctx.fillText(fitClip(ctx, "見積番号 " + C.no, 70, 3.2, 2.4), W - M, M + 2);
+    ctx.font = "3.2px " + FONT; ctx.fillText("見積日 " + (C.date ? ymd(C.date) : "　　年　　月　　日"), W - M, M + 7);
+    // 表題
+    ctx.textAlign = "center"; ctx.font = "bold 8.5px " + FONT; ctx.fillText("御　見　積　書", W / 2, M + 17);
+    line(ctx, W / 2 - 34, M + 19.5, W / 2 + 34, M + 19.5, INK, 0.35); line(ctx, W / 2 - 34, M + 20.4, W / 2 + 34, M + 20.4, INK, 0.2);
+    // 宛先(敬称は別に描く)
+    ctx.textAlign = "left"; var T = toLayout(C), base = T.lines.length > 1 ? [M + 28.4, M + 28.4 + T.size + 0.6] : [M + 33];
+    ctx.font = "bold " + T.size + "px " + FONT;
+    T.lines.forEach(function (l, i) { ctx.fillText(l, M, base[i]); });
+    if (T.sfx) { var lw = ctx.measureText(T.lines[T.lines.length - 1]).width; ctx.fillText((T.lines[0] ? " " : "") + T.sfx, M + lw, base[base.length - 1]); }
+    line(ctx, M, M + 35, M + 105, M + 35, INK, 0.35);
+    ctx.font = "3.4px " + FONT; ctx.fillText("下記のとおりお見積り申し上げます。", M, M + 41.5);
+    var y = M + 48;
+    infoRows(C).forEach(function (r) {
+      ctx.fillStyle = "#555"; ctx.font = "3.1px " + FONT; ctx.fillText(r[0], M, y);
+      ctx.fillStyle = INK; ctx.fillText(fitClip(ctx, r[1] || "", 80, 3.6, 2.6), M + 24, y);
+      line(ctx, M, y + 1.8, M + 105, y + 1.8, "#9aa0aa", 0.2); y += 6.5;
+    });
+    y += 2;
+    ctx.fillStyle = TINT; ctx.fillRect(M, y, 105, 14); ctx.strokeStyle = HEAD; ctx.lineWidth = 0.5; ctx.strokeRect(M, y, 105, 14);
+    ctx.fillStyle = INK; ctx.textBaseline = "middle"; ctx.font = "bold 3.6px " + FONT; ctx.fillText("お見積金額", M + 3, y + 5.2);
+    ctx.font = "2.8px " + FONT; ctx.fillText("(税込)", M + 3, y + 9.8);
+    ctx.textAlign = "right"; fitFont(ctx, yen(S.t.total), 74, 7.4, true); ctx.fillText(yen(S.t.total), M + 102, y + 7.2);
+    // 右: 発行者と押印欄
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    var I = issuerLayout(C);
+    if (IMG.logo) drawImgFit(ctx, IMG.logo, IX, M + 28, I.iw, 15, false);
+    if (IMG.stamp) drawImgFit(ctx, IMG.stamp, I.seal.x, I.seal.y, SEAL, SEAL, false);
+    else {
+      ctx.strokeStyle = "#b9c1cc"; ctx.lineWidth = 0.25; ctx.strokeRect(I.seal.x, I.seal.y, SEAL, SEAL);
+      ctx.fillStyle = "#a7aeb9"; ctx.font = "3px " + FONT; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("印", I.seal.x + SEAL / 2, I.seal.y + SEAL / 2);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    }
+    ctx.fillStyle = INK; ctx.font = "bold " + I.co.size + "px " + FONT;
+    I.co.lines.forEach(function (l, i) { ctx.fillText(l, IX, I.coY + i * I.lh); });
+    I.rows.forEach(function (r) { ctx.fillStyle = INK; ctx.fillText(fitClip(ctx, r.t, r.w, 3.2, 2.2), IX, r.y); });
+  }
+  function drawHeadN(ctx, C, pg) {
+    ctx.fillStyle = INK; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.fillText(fitClip(ctx, "御見積書(明細の続き)", 80, 5.2, 3, true), M, M + 4);
+    ctx.textAlign = "right"; ctx.font = "3.2px " + FONT;
+    var t = [toLine(C), C.no ? "見積番号 " + C.no : "", C.date ? ymd(C.date) : ""].filter(Boolean).join("　");
+    if (t) ctx.fillText(fitClip(ctx, t, 95, 3.2, 2.2), W - M, M + 4);
+    line(ctx, M, M + 6.5, W - M, M + 6.5, HEAD, 0.4);
+  }
+  var COLS = [["品名", 78], ["数量", 17], ["単位", 13], ["単価", 32], ["金額", 40]];
+  function mark(r) { return r.rate === "8" ? " ※" : r.rate === "0" ? " ☆" : ""; }
+  function fsOf(rh) { return Math.min(3.5, rh * 0.52); }
+  // 品名は2行まで折り返す(行が高くなる)。3行目にかかる分は「…」
+  var nfCache = new Map();
+  function nameFit(r, fs) {
+    var t = (r.name || "") + mark(r), key = fs.toFixed(3) + "|" + t;
+    if (nfCache.has(key)) return nfCache.get(key);
+    if (nfCache.size > 3000) nfCache.clear();
+    var w = COLS[0][1] - 3, res; MC.font = fs + "px " + FONT;
+    if (MC.measureText(t).width <= w) res = { lines: [t], cut: false };
+    else {
+      var l = wrapLines(MC, t, w, fs);
+      if (l.length <= 2) res = { lines: l, cut: false };
+      else { MC.font = fs + "px " + FONT; res = { lines: [l[0], clipW(MC, l.slice(1).join(""), w)], cut: true }; }
+    }
+    nfCache.set(key, res); return res;
+  }
+  function rowH(r, rh) { return nameFit(r, fsOf(rh)).lines.length > 1 ? rh * 1.6 : rh; }
+  function drawTable(ctx, y, pg, S) {
+    var xs = [], x = M, rh = pg.rh; COLS.forEach(function (c) { xs.push(x); x += c[1]; });
+    var top = y; ctx.fillStyle = HEAD; ctx.fillRect(M, y, W - 2 * M, rh); ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    COLS.forEach(function (c, i) { ctx.font = "bold " + Math.min(3.4, rh * 0.5) + "px " + FONT; ctx.fillText(c[0], xs[i] + c[1] / 2, y + rh / 2); });
+    y += rh;
+    var fs = fsOf(rh);
+    function carry(label, v) {
+      ctx.fillStyle = TINT; ctx.fillRect(M, y, W - 2 * M, rh); ctx.fillStyle = INK; ctx.textBaseline = "middle";
+      ctx.textAlign = "left"; ctx.font = "bold " + fs + "px " + FONT; ctx.fillText(label, xs[0] + 1.5, y + rh / 2);
+      ctx.textAlign = "right"; ctx.fillText(fmt(v), xs[4] + COLS[4][1] - 1.5, y + rh / 2);
+      y += rh; line(ctx, M, y, W - M, y, LINE, 0.22);
+    }
+    if (!pg.first) carry("前ページからの繰越", pg.carryIn);
+    S.rows.slice(pg.start, pg.end).forEach(function (r) {
+      ctx.fillStyle = INK; ctx.textBaseline = "middle";
+      var nf = nameFit(r, fs), h = nf.lines.length > 1 ? rh * 1.6 : rh;
+      ctx.textAlign = "left"; ctx.font = fs + "px " + FONT;
+      if (nf.lines.length > 1) { ctx.fillText(nf.lines[0], xs[0] + 1.5, y + h * 0.3); ctx.fillText(nf.lines[1], xs[0] + 1.5, y + h * 0.71); }
+      else ctx.fillText(nf.lines[0], xs[0] + 1.5, y + h / 2);
+      var vals = [null, r.q === null || isNaN(r.q) ? (r.p !== null && !isNaN(r.p) && r.a === null ? "1" : "") : fmtD(r.q), r.unit, r.p === null || isNaN(r.p) ? "" : fmtD(r.p), fmt(r.used)];
+      vals.forEach(function (v, i) {
+        if (!v) return;
+        var right = i === 1 || i === 3 || i === 4, t = v;
+        ctx.textAlign = right ? "right" : "center";
+        if (right) fitFont(ctx, t, COLS[i][1] - 3, fs); else t = fitClip(ctx, t, COLS[i][1] - 3, fs, 2.2);
+        ctx.fillText(t, right ? xs[i] + COLS[i][1] - 1.5 : xs[i] + COLS[i][1] / 2, y + h / 2);
+      });
+      y += h; line(ctx, M, y, W - M, y, LINE, 0.22);
+    });
+    for (var p = 0; p < pg.pad; p++) { y += rh; line(ctx, M, y, W - M, y, LINE, 0.22); }
+    if (!pg.last) carry("次ページへ繰越", pg.carryOut);
+    for (var k = 1; k < xs.length; k++) line(ctx, xs[k], top, xs[k], y, LINE, 0.22);
+    ctx.strokeStyle = HEAD; ctx.lineWidth = 0.45; ctx.strokeRect(M, top, W - 2 * M, y - top);
+    return y;
+  }
+  function rateRows(S) { return ["10", "8", "0"].filter(function (k) { return S.t.by[k].n > 0; }); }
+  function summaryH(S) { return (1 + Math.max(1, rateRows(S).length) + 3) * SRH; }
+  function remarkAll(C) { return C.note ? wrapLines(MC, C.note, W - 2 * M - 6, 3.3) : []; }
+  // 無料版で紙1枚に入りきらないときは、備考を入るだけにする(C.remCap 行まで。最後の行は省いた知らせ)
+  function remarkLines(C) {
+    var all = remarkAll(C);
+    if (C.remCap === null || C.remCap === undefined || all.length <= C.remCap) return all;
+    return C.remCap <= 0 ? [] : all.slice(0, C.remCap - 1).concat(["(備考の続きは、紙に入りきらないので省いています)"]);
+  }
+  function remarkH(C) { var n = remarkLines(C).length; return n ? 8 + n * 4.7 : 0; }
+  function footerH(C, S) { var r = remarkH(C); return 5 + summaryH(S) + (r ? 5 + r : 0); }
+  function sideNotes(C, S) {
+    var n = [];
+    if (S.mark8) n.push("※は軽減税率(8%)対象です。");
+    if (S.has0) n.push("☆は非課税・対象外です。");
+    n.push("消費税は" + (C.st.line ? "行ごとに計算して合計" : "税率ごとに合計して計算") + "(1円未満" + RM[C.st.rm] + ")。");
+    if (C.st.inc) n.push("金額は税込です。");
+    return n;
+  }
+  function drawFooter(ctx, C, S, y) {
+    y += 5;
+    var cw = [36, 30, 26], x0 = W - M - 92, xs = [x0, x0 + cw[0], x0 + cw[0] + cw[1]], inc = C.st.inc, rr = rateRows(S);
+    if (!rr.length) rr = ["10"];
+    var rows = [["税率区分", inc ? "対象額(税込)" : "対象額(税抜)", inc ? "うち消費税" : "消費税", "head"]];
+    var RL = { "10": "10%対象", "8": "8%対象※", "0": "非課税・対象外" };
+    rr.forEach(function (k) { var g = S.t.by[k]; rows.push([RL[k], fmt(g.base), k === "0" ? "—" : fmt(g.tax), ""]); });
+    if (inc) rows.push(["合計(税込)", yen(S.t.total), null, "total"], ["うち消費税", fmt(S.t.tax), null, ""], ["税抜金額", fmt(S.t.sub), null, ""]);
+    else rows.push(["小計(税抜)", fmt(S.t.sub), null, ""], ["消費税", fmt(S.t.tax), null, ""], ["合計(税込)", yen(S.t.total), null, "total"]);
+    var top = y;
+    rows.forEach(function (r) {
+      if (r[3] === "head") { ctx.fillStyle = HEAD; ctx.fillRect(x0, y, 92, SRH); }
+      else if (r[3] === "total") { ctx.fillStyle = TINT; ctx.fillRect(x0, y, 92, SRH); }
+      ctx.fillStyle = r[3] === "head" ? "#fff" : INK; ctx.textBaseline = "middle";
+      var b = r[3] !== "", fs = r[3] === "total" ? 3.7 : 3.2;
+      ctx.textAlign = r[3] === "head" ? "center" : "left"; fitFont(ctx, r[0], cw[0] - 3, fs, b);
+      ctx.fillText(r[0], r[3] === "head" ? xs[0] + cw[0] / 2 : xs[0] + 1.5, y + SRH / 2);
+      if (r[2] === null) { ctx.textAlign = "right"; fitFont(ctx, r[1], cw[1] + cw[2] - 3, fs, b); ctx.fillText(r[1], x0 + 92 - 1.5, y + SRH / 2); }
+      else {
+        ctx.textAlign = r[3] === "head" ? "center" : "right";
+        [1, 2].forEach(function (i) { fitFont(ctx, r[i], cw[i] - 3, fs, b); ctx.fillText(r[i], r[3] === "head" ? xs[i] + cw[i] / 2 : xs[i] + cw[i] - 1.5, y + SRH / 2); });
+      }
+      y += SRH; line(ctx, x0, y, x0 + 92, y, LINE, 0.22);
+      if (r[2] !== null) { line(ctx, xs[1], y - SRH, xs[1], y, LINE, 0.22); line(ctx, xs[2], y - SRH, xs[2], y, LINE, 0.22); }
+      else line(ctx, xs[1], y - SRH, xs[1], y, LINE, 0.22);
+    });
+    ctx.strokeStyle = HEAD; ctx.lineWidth = 0.45; ctx.strokeRect(x0, top, 92, y - top);
+    // 左: 注記
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#333";
+    var ny = top + 3.5;
+    sideNotes(C, S).forEach(function (t) { wrapLines(ctx, t, x0 - M - 5, 2.9).forEach(function (l) { ctx.font = "2.9px " + FONT; ctx.fillText(l, M, ny); ny += 4.2; }); });
+    // 備考
+    var lines = remarkLines(C);
+    if (lines.length) {
+      y += 5; var h = remarkH(C);
+      ctx.strokeStyle = HEAD; ctx.lineWidth = 0.35; ctx.strokeRect(M, y, W - 2 * M, h);
+      ctx.fillStyle = INK; ctx.font = "bold 3.3px " + FONT; ctx.fillText("備考", M + 3, y + 5);
+      ctx.font = "3.3px " + FONT; lines.forEach(function (l, i) { ctx.fillText(l, M + 3, y + 9.5 + i * 4.7); });
+      y += h;
+    }
+    return y;
+  }
+  function layout(C, S) {
+    C.remCap = null;
+    var n = S.rows.length, top1 = head1H(C), fh = footerH(C, S), topN = M + 11, pages = [], minRh = FULL ? 5.5 : 4.2, rh, i;
+    function tableH(h, a, b) { var t = 0; for (var j = a; j < b; j++) t += rowH(S.rows[j], h); return t; }
+    for (rh = RH; rh >= minRh - 1e-9; rh -= 0.35) {
+      var avail = BOTTOM - top1 - fh - rh, th = tableH(rh, 0, n);
+      if (th <= avail) { pages.push({ first: true, last: true, start: 0, end: n, rh: rh, pad: Math.max(0, Math.min(8 - n, Math.floor((avail - th) / rh))) }); break; }
+    }
+    if (!pages.length && !FULL) {
+      // 無料版はいつも紙1枚: 行をいちばん低くして、備考は入るだけにする
+      rh = minRh;
+      var room = BOTTOM - top1 - rh - tableH(rh, 0, n) - 5 - summaryH(S) - 5 - 8;
+      C.remCap = Math.max(0, Math.floor(room / 4.7));
+      pages.push({ first: true, last: true, start: 0, end: n, rh: rh, pad: 0 });
+    }
+    if (!pages.length) {
+      var start = 0, first = true, sum = 0;
+      while (pages.length < 80) {
+        var top = first ? top1 : topN, hdr = (first ? 1 : 2) * RH;
+        if (tableH(RH, start, n) <= BOTTOM - top - fh - hdr) { pages.push({ first: first, last: true, start: start, end: n, rh: RH, pad: 0, carryIn: sum }); break; }
+        var lim = BOTTOM - top - hdr - RH, acc = 0, end = start;
+        while (end < n && acc + rowH(S.rows[end], RH) <= lim) { acc += rowH(S.rows[end], RH); end++; }
+        if (end === start && start < n) end++;
+        var pg = { first: first, last: false, start: start, end: end, rh: RH, pad: 0, carryIn: sum };
+        for (i = start; i < end; i++) sum += S.rows[i].used;
+        pg.carryOut = sum; pages.push(pg); start = end; first = false;
+      }
+    }
+    pages.forEach(function (p, j) { p.idx = j; p.of = pages.length; });
+    // ※の説明は、紙に実際に入る備考で判断する(備考を省いたときに説明が消えないように)
+    S.mark8 = S.has8 && !/※.*軽減|軽減.*※/.test(remarkLines(C).join(""));
+    return pages;
+  }
+  function drawPage(ctx, C, S, L, pi, k) {
+    var pg = L[pi];
+    ctx.save(); ctx.scale(k, k);
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    var y;
+    if (pg.first) { drawHead1(ctx, C, S); y = head1H(C); } else { drawHeadN(ctx, C, pg); y = M + 11; }
+    y = drawTable(ctx, y, pg, S);
+    if (pg.last) drawFooter(ctx, C, S, y);
+    pageNo(ctx, pg); credit(ctx);
+    ctx.restore();
+  }
+  function render(C, S, L, pi, dpi) {
+    var k = dpi / 25.4, c = document.createElement("canvas");
+    c.width = Math.round(W * k); c.height = Math.round(H * k);
+    var ctx = c.getContext("2d"); if (!ctx) return null;
+    drawPage(ctx, C, S, L, pi, k);
+    return c;
+  }
+
+  // ===== 計算の確かめ =====
+  var lastCheck = null;
+  function findAlts(given, cur, useCalc) {
+    var out = [];
+    ["floor", "round", "ceil"].forEach(function (rm) {
+      var rows = rowsFor(rm, useCalc);
+      [false, true].forEach(function (inc) {
+        [false, true].forEach(function (ln) {
+          var st = { inc: inc, line: ln, rm: rm };
+          if (!useCalc && setKey(st) === setKey(cur)) return;
+          var t = totals(rows, st), ok = Object.keys(given).every(function (k) { return t[k] === given[k]; });
+          if (ok) out.push({ st: st, d: (inc !== cur.inc) + (ln !== cur.line) + (rm !== cur.rm) });
+        });
+      });
+    });
+    return out.sort(function (a, b) { return a.d - b.d; });
+  }
+  // 1か所だけ変えると合うか(税率の入れちがい・入れすぎの行・金額の書きまちがい)。今の計算のまま試す
+  function singleFixes(given, st) {
+    var base = items.map(function (it, i) { return { i: i, r: rowCalc(it, st.rm) }; }).filter(function (x) { return !x.r.empty; });
+    var plain = base.map(function (x) { return x.r; }), out = [];
+    function test(rows) { var t = totals(rows, st); return Object.keys(given).every(function (k) { return t[k] === given[k]; }); }
+    function lab(x) { return (x.i + 1) + "行目(" + (x.r.name || "品名なし") + ")"; }
+    base.forEach(function (x, j) {
+      (x.r.rate === "10" ? ["8", "0"] : ["10"]).forEach(function (rt) {
+        if (out.length >= 3) return;
+        var rows = plain.slice(); rows[j] = Object.assign({}, x.r, { rate: rt });
+        if (test(rows)) out.push({ kind: "rate_swap", text: lab(x) + "を" + (rt === "0" ? "非課税・対象外" : rt + "%") + "で計算すると一致します。" });
+      });
+    });
+    base.forEach(function (x, j) {
+      if (out.length >= 3 || base.length < 2) return;
+      if (test(plain.slice(0, j).concat(plain.slice(j + 1)))) out.push({ kind: "row_omit", text: lab(x) + "を除くと一致します(元の見積書に入っていない行かもしれません)。" });
+    });
+    base.forEach(function (x, j) {
+      if (out.length >= 3 || x.r.a === null || x.r.calc === null || x.r.a === x.r.calc) return;
+      var rows = plain.slice(); rows[j] = Object.assign({}, x.r, { used: x.r.calc });
+      if (test(rows)) out.push({ kind: "row_amount", text: lab(x) + "の金額を数量×単価(" + fmt(x.r.calc) + "円)にすると一致します。" });
+    });
+    return out;
+  }
+  function applySet(st) {
+    [["tin", st.inc ? "inc" : "ext"], ["tcalc", st.line ? "line" : "total"], ["trm", st.rm]].forEach(function (p) { var r = document.querySelector('input[name="' + p[0] + '"][value="' + p[1] + '"]'); if (r) r.checked = true; });
+  }
+  function runCheck(C, S) {
+    var box = $("chkOut"), NAMES = { sub: "小計(税抜)", tax: "消費税", total: "合計(税込)" }, given = {}, badIn = 0;
+    box.textContent = "";
+    [["sub", "chkSub"], ["tax", "chkTax"], ["total", "chkTotal"]].forEach(function (p) {
+      var v = numI($(p[1]).value); $(p[1]).setAttribute("aria-invalid", isNaN(v) ? "true" : "false");
+      if (v === null) return; if (isNaN(v)) { badIn++; return; } given[p[0]] = v;
+    });
+    var keys = Object.keys(given);
+    if (badIn) box.appendChild(cell("p", "ng", "数字として読めない欄があります(赤い枠)。"));
+    if (!keys.length) { lastCheck = null; return; }
+    if (!S.rows.length) { box.appendChild(cell("p", "ng", "先に「3. 明細と消費税」に明細を入れると、比べられます。")); lastCheck = null; return; }
+    var mism = 0;
+    keys.forEach(function (k) {
+      var d = given[k] - S.t[k], p = cell("p", d ? "ng" : "ok");
+      p.textContent = NAMES[k] + ": 元の見積書 " + fmt(given[k]) + "円 / 計算 " + fmt(S.t[k]) + "円 … " + (d ? "元のほうが" + fmt(Math.abs(d)) + "円" + (d > 0 ? "多い" : "少ない") : "一致");
+      if (d) mism++; box.appendChild(p);
+    });
+    var fixed = "none";
+    if (!mism) {
+      fixed = setKey(C.st);
+      box.appendChild(cell("p", "ok", "書いてある額と、今の計算(" + setText(C.st) + ")の値がそろっています。" + (S.ng ? "ただし、金額が数量×単価と合わない行が" + S.ng + "行あります(「3. 明細と消費税」の赤い枠)。" : "")));
+    } else {
+      var hb = cell("div", "hintbox"), alts = findAlts(given, C.st, false), how = "";
+      if (alts.length) {
+        fixed = setKey(alts[0].st); how = "set";
+        hb.appendChild(cell("p", "", "次の計算なら、書いてある額と合います:"));
+        var ul = cell("ul"); alts.slice(0, 4).forEach(function (a) { ul.appendChild(cell("li", "", setText(a.st))); }); hb.appendChild(ul);
+        var b = cell("button", "btn small", "いちばん上の計算に切りかえる"); b.type = "button";
+        b.addEventListener("click", function () { applySet(alts[0].st); refresh(); setSt2("itmSt", "計算を「" + setText(alts[0].st) + "」に切りかえました。"); $("itm-card").scrollIntoView && $("itm-card").scrollIntoView({ block: "start" }); });
+        hb.appendChild(b);
+      } else if (S.ng) {
+        var alts2 = findAlts(given, C.st, true);
+        if (alts2.length) {
+          fixed = "calc_amounts"; how = "amt";
+          hb.appendChild(cell("p", "", "金額が数量×単価と合わない行(" + S.ng + "行)を、数量×単価にそろえると合います(" + setText(alts2[0].st) + ")。元の見積書の金額の書きまちがいかもしれません。"));
+        }
+      }
+      if (!how) {
+        var sf = singleFixes(given, C.st);
+        if (sf.length) {
+          fixed = sf[0].kind; how = "one";
+          hb.appendChild(cell("p", "", "計算のしかたを変えても合いませんが、1か所だけ変えると合います:"));
+          var ul2 = cell("ul"); sf.forEach(function (x) { ul2.appendChild(cell("li", "", x.text)); }); hb.appendChild(ul2);
+        }
+      }
+      if (!how) hb.appendChild(cell("p", "", "税率ごと・行ごと、切り捨て・四捨五入・切り上げ、税抜・税込のどの組み合わせでも、1行だけ直しても合いません。明細の金額・税率(10%と8%)・入れ忘れの行や、元の見積書の書きまちがいを確かめると安心です。"));
+      box.appendChild(hb);
+    }
+    lastCheck = { mismatch: mism, fixed_by: fixed, rows_ng: S.ng };
+  }
+  var lastTracked = "";
+  function checkTrack() {
+    flush(); if (!lastCheck) return;
+    var k = lastCheck.mismatch + "|" + lastCheck.fixed_by + "|" + lastCheck.rows_ng;
+    if (k === lastTracked) return; lastTracked = k;
+    track("mitsumori_check", { mismatch: lastCheck.mismatch, fixed_by: lastCheck.fixed_by, rows_ng: lastCheck.rows_ng });
+  }
+
+  // ===== 画面 =====
+  var pvCanvas = null, lastC = null, lastS = null, lastL = null;
+  function badMsg(r) {
+    var m = [];
+    if (r.bad.indexOf("q") >= 0) m.push("数量が読めないので1として計算しています");
+    if (r.bad.indexOf("p") >= 0) m.push("単価が読めないので、金額の欄の額(空なら0)で計算しています");
+    if (r.bad.indexOf("a") >= 0) m.push(r.calc !== null ? "金額が読めないので数量×単価で計算しています" : "金額が読めないので0として計算しています");
+    if (r.bad.indexOf("big") >= 0) m.push("数量×単価が大きすぎるので計算していません(1兆円未満まで計算します)");
+    return m.join("。") + "(赤い枠。整数は12桁・小数は4桁まで)。";
+  }
+  function refresh() {
+    var C = conf(), S = calc(C), L = layout(C, S);
+    lastC = C; lastS = S; lastL = L;
+    // 行ごとの印
+    S.all.forEach(function (r) {
+      var m = $("rmsg" + r.id); if (!m) return;
+      var d = m.closest(".item"); m.textContent = ""; m.className = "rmsg";
+      ["q", "p", "a"].forEach(function (k) { var x = d.querySelector('[data-k="' + k + '"]'); if (x) x.setAttribute("aria-invalid", r.bad.indexOf(k) >= 0 || (k !== "a" && r.bad.indexOf("big") >= 0) ? "true" : "false"); });
+      var x2 = d.querySelector('[data-k="a"]'); if (x2) x2.placeholder = r.a === null && r.calc !== null ? fmt(r.calc) : "";
+      d.classList.toggle("ng", r.ng);
+      if (r.bad.length) { m.classList.add("ng"); m.textContent = badMsg(r); }
+      else if (r.ng) {
+        m.classList.add("ng"); var diff = r.a - r.calc;
+        m.appendChild(document.createTextNode("金額 " + fmt(r.a) + "円は、数量×単価(" + fmtD(r.qq) + "×" + fmtD(r.p) + "=" + fmt(r.calc) + "円)と" + fmt(Math.abs(diff)) + "円ちがいます。"));
+        var b = cell("button", "btn small", "数量×単価にそろえる"); b.type = "button"; b.dataset.act = "fix"; b.dataset.id = r.id; m.appendChild(b);
+      }
+    });
+    // 合計
+    var b = $("sumBox"); b.textContent = ""; var t = S.t;
+    var p1 = cell("p"); p1.appendChild(document.createTextNode((C.st.inc ? "合計(税込) " : "小計(税抜) " + fmt(t.sub) + "円 + 消費税 " + fmt(t.tax) + "円 = ")));
+    p1.appendChild(cell("b", "", (C.st.inc ? "" : "合計(税込) ") + fmt(t.total) + "円")); if (C.st.inc) p1.appendChild(document.createTextNode("(うち消費税 " + fmt(t.tax) + "円・税抜 " + fmt(t.sub) + "円)")); b.appendChild(p1);
+    var rr = rateRows(S); if (rr.length > 1 || S.has8) b.appendChild(cell("p", "fine", rr.map(function (k) { var g = t.by[k]; return (k === "0" ? "非課税・対象外 " : k + "%対象 ") + fmt(g.base) + "円" + (k === "0" ? "" : "(消費税 " + fmt(g.tax) + "円)"); }).join("・")));
+    $("setHint").textContent = "今の計算: " + setText(C.st) + "。インボイス(適格請求書)では、1枚につき税率ごとに1回の端数処理と決まっています(切り捨て・四捨五入・切り上げのどれでも可。国税庁Q&A問57)。";
+    // 宛先・会社名が紙に入りきらないとき
+    var TL = toLayout(C), CL = issuerLayout(C).co;
+    $("toWarn").textContent = TL.cut ? "宛先が長くて見積書に入りきらないので、最後を「…」にしています。" : TL.shrink ? "宛先が長いので、見積書では字を小さくしています。" : "";
+    $("coWarn").textContent = CL.cut ? "会社名が長くて見積書に入りきらないので、最後を「…」にしています。" : CL.shrink ? "会社名が長いので、見積書では字を小さくしています。" : "";
+    // 注意
+    var w = [];
+    var bad = S.all.filter(function (r) { return r.bad.length; }).length; if (bad) w.push("読めない数字がある行が" + bad + "行あります(赤い枠。行の下に、どう計算したかを出しています)");
+    if (S.ng) w.push("金額が数量×単価と合わない行が" + S.ng + "行あります(行の下に差額)");
+    var z = S.rows.filter(function (r) { return r.p === 0; }).length; if (z) w.push("単価が0円の行が" + z + "行あります");
+    var nn = S.rows.filter(function (r) { return !r.name && r.used !== 0; }).length; if (nn) w.push("品名が空で金額がある行が" + nn + "行あります");
+    var dq = S.rows.filter(function (r) { return r.q !== null && !isNaN(r.q) && r.q !== Math.round(r.q); }), dqNg = dq.filter(function (r) { return !/式|時間|^h$|^hr?s?$|時$/i.test(r.unit); }).length;
+    if (dqNg) w.push("数量が小数の行が" + dqNg + "行あります(単位が「時間」「式」なら、そのままで大丈夫です)");
+    if (C.date && C.valid && C.valid < C.date) w.push("有効期限が見積日より前になっています");
+    if (S.t.total < 0) w.push("合計がマイナスです");
+    if (C.reg && !/^T\d{13}$/.test(C.reg.normalize("NFKC").replace(/[\s-]/g, ""))) w.push("登録番号が「T+13桁の数字」の形になっていません");
+    var fs0 = fsOf(L[0].rh), cutN = S.rows.filter(function (r) { return nameFit(r, fs0).cut; }).length;
+    if (cutN) w.push("品名が長くて2行に入りきらない行が" + cutN + "行あります(見積書では最後を「…」にしています)");
+    if (!FULL && L[0].rh < RH - 0.01) w.push("紙1枚に入るように、見積書の明細の字を小さくしています");
+    if (C.remCap !== null) w.push("備考が長くて紙1枚に入りきらないので、入る分だけにしています(備考を短くすると全部入ります)");
+    if (items.length >= MAXR) w.push(FULL ? "明細が100行に達しています" : "無料版の明細は15行までです(買い切り版は100行まで)");
+    var wn = $("warnNote"); wn.textContent = "";
+    if (w.length) { wn.appendChild(document.createTextNode("注意")); var ul = cell("ul"); w.forEach(function (x) { ul.appendChild(cell("li", "", x + "。")); }); wn.appendChild(ul); }
+    // 見本
+    var ps = $("inPage"), cur = +ps.value || 0; ps.textContent = "";
+    L.forEach(function (pg, i) { var o = document.createElement("option"); o.value = i; o.textContent = (i + 1) + "枚目" + (i ? "(明細の続き)" : ""); ps.appendChild(o); });
+    cur = Math.min(cur, L.length - 1); ps.value = cur;
+    $("pageField").classList.toggle("hidden", L.length < 2);
+    if (!pvCanvas) { pvCanvas = document.createElement("canvas"); pvCanvas.setAttribute("role", "img"); $("pv").appendChild(pvCanvas); }
+    var k = 900 / W, cw = Math.round(W * k), ch = Math.round(H * k);
+    if (pvCanvas.width !== cw || pvCanvas.height !== ch) { pvCanvas.width = cw; pvCanvas.height = ch; }
+    drawPage(pvCanvas.getContext("2d"), C, S, L, cur, k);
+    var sn = "明細" + S.rows.length + "行・お見積金額(税込) " + fmt(t.total) + "円。A4縦の紙" + L.length + "枚。" + (S.mark8 ? "8%の行に「※」を付け、「※は軽減税率(8%)対象です」を入れています。" : "");
+    setSt("sumNote", sn, false);
+    pvCanvas.setAttribute("aria-label", "見積書の見本。" + sn);
+    $("sampleRow").classList.toggle("hidden", !!($("inTo").value || $("inCo").value || items.some(function (it) { return it.name || it.p || it.a; })));
+    $("barText").textContent = "合計(税込) " + fmt(t.total) + "円" + (w.length ? "・注意あり" : "");
+    runCheck(C, S);
+    save();
+  }
+
+  // ===== 保存・引き継ぎ =====
+  var FIELDS = ["inTo", "inSuffix", "inSubj", "inNo", "inDate", "inValid", "inDeliv", "inPay", "inPlace", "inNote", "inCo", "inPerson", "inAddr", "inTel", "inMail", "inReg", "chkSub", "chkTax", "chkTotal"];
+  var LISTKEY = STORE + ":list";
+  // ロゴ・角印を外す(買い切り版で入れかわる)。外した画像があれば true
+  var clearImages = function () { return false; };
+  // このブラウザに保存した画像だけを消す(今の見積の画像は残す)。消したものがあれば true
+  var dropStoredImages = function () { return false; };
+  function snapshot() {
+    var st = sets(), o = { v: 1, set: { tin: st.inc ? "inc" : "ext", tcalc: st.line ? "line" : "total", trm: st.rm }, items: items.map(function (it) { return { name: it.name, q: it.q, unit: it.unit, p: it.p, a: it.a, rate: it.rate }; }) };
+    FIELDS.forEach(function (id) { o[id] = $(id).value; });
+    return o;
+  }
+  function save() {
+    try { if (!$("chkKeep").checked) return; localStorage.setItem(STORE, JSON.stringify(snapshot())); } catch (e) {}
+  }
+  function setRadio(name, v) { var r = document.querySelector('input[name="' + name + '"][value="' + v + '"]'); if (r) r.checked = true; }
+  function setDefaults() {
+    FIELDS.forEach(function (id) { var el = $(id); el.value = el.tagName === "SELECT" ? el.options[0].value : ""; });
+    $("inDate").value = today();
+    setRadio("tin", "ext"); setRadio("tcalc", "total"); setRadio("trm", "floor");
+    items = []; nextId = 1; for (var i = 0; i < 3; i++) items.push(newItem());
+  }
+  var lastCut = 0, lastRq = 0, dateFixed = false;
+  function applyData(o) {
+    if (!o || typeof o !== "object") return false;
+    dateFixed = false;
+    FIELDS.forEach(function (id) {
+      var v = o[id], el = $(id); if (typeof v !== "string") return;
+      if (el.tagName === "SELECT") { if ([].some.call(el.options, function (op) { return op.value === v; })) el.value = v; }
+      else if (el.type === "date") {
+        if (okDate(v)) el.value = v;
+        else if (id === "inDate" && v) { el.value = today(); dateFixed = true; }
+        else el.value = "";
+      }
+      else el.value = el.tagName === "TEXTAREA" ? cleanML(v, 300) : clean(v, +el.getAttribute("maxlength") || 60);
+    });
+    if (o.set && typeof o.set === "object") { if (/^(ext|inc)$/.test(o.set.tin)) setRadio("tin", o.set.tin); if (/^(total|line)$/.test(o.set.tcalc)) setRadio("tcalc", o.set.tcalc); if (has(RM, o.set.trm)) setRadio("trm", o.set.trm); }
+    lastCut = 0; lastRq = 0;
+    if (Array.isArray(o.items)) {
+      items = []; nextId = 1;
+      o.items.forEach(function (x) {
+        if (!x || typeof x !== "object") return; if (items.length >= MAXR) { lastCut++; return; }
+        var rate = String(x.rate), rq = "";
+        if (!has(RATES, rate)) { rq = clean(rate, 20) || "?"; rate = "10"; lastRq++; }
+        items.push(newItem({ name: typeof x.name === "string" ? x.name : "", q: typeof x.q === "string" ? x.q : "", unit: typeof x.unit === "string" ? x.unit : "", p: typeof x.p === "string" ? x.p : "", a: typeof x.a === "string" ? x.a : "", rate: rate, rq: rq }));
+      });
+      if (!items.length) items.push(newItem());
+    }
+    return true;
+  }
+  function dateNote() { return (dateFixed ? "見積日が読めなかったので、今日の日付にしました。" : "") + (lastRq ? "税率が読めない行が" + lastRq + "行あり、10%にしています(黄色の行)。" : ""); }
+  function keepOff() { try { return localStorage.getItem(STORE + ":off") === "1"; } catch (e) { return false; } }
+  function load() {
+    try {
+      if (keepOff()) { $("chkKeep").checked = false; return false; }
+      var o = JSON.parse(localStorage.getItem(STORE) || "null"); if (!o || typeof o !== "object") return false;
+      return applyData(o);
+    } catch (e) { return false; }
+  }
+  // 保存した見積も消すか聞く(はいなら消す)。消した件数を返す
+  function askClearSaved() {
+    var n = savedList().length; if (!n) return 0;
+    if (!window.confirm("このブラウザに保存した見積(" + n + "件)も消しますか?(元に戻せません。残すときは「キャンセル」)")) return 0;
+    try { localStorage.removeItem(LISTKEY); } catch (e) {}
+    renderSaved(); return n;
+  }
+  $("chkKeep").addEventListener("change", function () {
+    try {
+      if ($("chkKeep").checked) { localStorage.removeItem(STORE + ":off"); save(); setSt2("dataSt", "このブラウザに自動で保存します。"); return; }
+      localStorage.removeItem(STORE); localStorage.setItem(STORE + ":off", "1");
+    } catch (e) {}
+    var img = dropStoredImages(), n = askClearSaved();
+    refresh();
+    setSt2("dataSt", "自動で保存した入力" + (img ? "とロゴ・角印の画像の保存分" : "") + (n ? "と、保存した見積" + n + "件" : "") + "を消しました。" + (img ? "画像は、いま作っている見積には残っています。" : "") + "これからは自動では保存しません(ページを閉じると入力も消えます)。");
+  });
+  function copyText(text, done, st) {
+    function fallback() { var ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand("copy"); } catch (e) {} ta.remove(); if (ok) done(); else setSt(st, "コピーできませんでした。お使いのブラウザではコピーが止められています。", true); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+  var EXP = "見積書の引き継ぎ用の文:";
+  $("expBtn").addEventListener("click", function () {
+    flush();
+    copyText(EXP + JSON.stringify(snapshot()), function () { setSt2("dataSt", "引き継ぎ用の文をコピーしました(明細" + items.length + "行)。メモ帳やメールに貼って残せます。"); }, "dataSt");
+  });
+  $("impBtn").addEventListener("click", function () {
+    var t = String($("inImp").value), i = t.indexOf("{"), j = t.lastIndexOf("}"), o = null;
+    if (i >= 0 && j > i) { try { o = JSON.parse(t.slice(i, j + 1)); } catch (e) { o = null; } }
+    if (!o || typeof o !== "object" || !Array.isArray(o.items)) { setSt("dataSt", "引き継ぎ用の文が読めませんでした。「" + EXP + "」から最後の「}」まで、まるごと貼り付けてください。", true); return; }
+    if (!window.confirm("今の入力を消して、貼り付けた内容に入れ替えますか?")) return;
+    setDefaults(); applyData(o); $("inImp").value = "";
+    renderItems(); refresh();
+    setSt2("dataSt", "入れ替えました(明細" + items.length + "行)。" + dateNote(), lastCut ? (FULL ? "100行" : "無料版は15行") + "までなので、" + lastCut + "行は入っていません。" : "");
+  });
+  $("clearBtn").addEventListener("click", function () {
+    if (!window.confirm("宛先・発行者・明細" + (FULL ? "・ロゴと角印の画像" : "") + "を全部消して、最初の状態に戻しますか?(このブラウザに自動で保存した内容も消えます。元に戻せません)")) return;
+    clearTimeout(timer); timer = null;
+    var img = clearImages();
+    setDefaults(); renderItems();
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    var n = askClearSaved();
+    refresh();
+    setSt2("dataSt", "全部消しました" + (img ? "(ロゴ・角印の画像もふくむ)" : "") + "。" + (n ? "保存した見積" + n + "件も消しました。" : "")); setSt2("itmSt", ""); setSt2("infoSt", "");
+  });
+  $("validBtn").addEventListener("click", function () {
+    var d = okDate($("inDate").value) ? $("inDate").value : today();
+    $("inValid").value = addDays(d, 30); refresh(); setSt2("infoSt", "有効期限を " + ymd($("inValid").value) + " にしました。");
+  });
+  // 見積の保存・複製(無料版3件・買い切り版30件)
+  function savedList() { try { var a = JSON.parse(localStorage.getItem(LISTKEY) || "[]"); return Array.isArray(a) ? a.filter(function (x) { return x && typeof x === "object" && typeof x.name === "string" && x.d && typeof x.d === "object"; }) : []; } catch (e) { return []; } }
+  function renderSaved() {
+    var box = $("savedList"), list = savedList(); box.textContent = "";
+    $("savedSum").textContent = "見積を名前をつけて保存・複製(" + (FULL ? "30件まで" : "無料版は3件まで") + ")";
+    if (!list.length) { box.appendChild(cell("p", "fine", "保存した見積はまだありません。")); return; }
+    list.forEach(function (x, i) {
+      var d = cell("div", "sv"), tx = cell("div", "tx", clean(x.name, 30) || "(名前なし)");
+      tx.appendChild(cell("small", "", (typeof x.at === "string" ? clean(x.at, 20) : "") + " 保存"));
+      d.appendChild(tx);
+      [["open", "開く"], ["dup", "複製"], ["del", "消す"]].forEach(function (b) { var bt = cell("button", "btn small" + (b[0] === "del" ? " del" : ""), b[1]); bt.type = "button"; bt.dataset.act = b[0]; bt.dataset.i = i; bt.setAttribute("aria-label", (clean(x.name, 30) || "名前なし") + "を" + b[1]); d.appendChild(bt); });
+      box.appendChild(d);
+    });
+  }
+  $("saveQBtn").addEventListener("click", function () {
+    flush();
+    var C = lastC, nm = clean($("saveName").value, 30) || clean([C.subj, C.to].filter(Boolean).join(" "), 30) || "見積";
+    var list = savedList(), at = new Date(), i = list.findIndex(function (x) { return x.name === nm; });
+    if (i < 0 && list.length >= MAXSAVE) { setSt("savedSt", FULL ? "保存できるのは30件までです。使わない見積を消してから保存してください。" : "無料版で保存できるのは3件までです(買い切り版は30件まで)。使わない見積を消すと保存できます。", true); return; }
+    if (i >= 0 && !window.confirm("「" + nm + "」はもう保存してあります。上書きしますか?")) return;
+    var rec = { name: nm, at: iso(at) + " " + String(at.getHours()).padStart(2, "0") + ":" + String(at.getMinutes()).padStart(2, "0"), d: snapshot() };
+    if (i >= 0) list.splice(i, 1);
+    list.unshift(rec);
+    try { localStorage.setItem(LISTKEY, JSON.stringify(list)); } catch (e) { setSt("savedSt", "このブラウザの保存の容量がいっぱいで、保存できませんでした。", true); return; }
+    $("saveName").value = ""; renderSaved(); setSt2("savedSt", "「" + nm + "」を保存しました(" + list.length + "件目)。");
+  });
+  $("savedList").addEventListener("click", function (ev2) {
+    var b = ev2.target.closest && ev2.target.closest("button"); if (!b) return;
+    var list = savedList(), x = list[+b.dataset.i]; if (!x) return;
+    if (b.dataset.act === "del") {
+      if (!window.confirm("「" + x.name + "」を消しますか?")) return;
+      list.splice(+b.dataset.i, 1); try { localStorage.setItem(LISTKEY, JSON.stringify(list)); } catch (e) {}
+      renderSaved(); setSt2("savedSt", "「" + x.name + "」を消しました。"); return;
+    }
+    if (!window.confirm("今の入力を、「" + x.name + "」" + (b.dataset.act === "dup" ? "の複製" : "") + "に入れ替えますか?(今の入力は、保存していなければ消えます)")) return;
+    setDefaults(); applyData(x.d);
+    var dup = b.dataset.act === "dup";
+    if (dup) { $("inDate").value = today(); $("inValid").value = ""; $("chkSub").value = ""; $("chkTax").value = ""; $("chkTotal").value = ""; dateFixed = false; }
+    renderItems(); refresh();
+    setSt2("savedSt", (dup ? "「" + x.name + "」を複製しました。見積日を今日にしました(有効期限は入れ直します)。見積番号は必要なら書きかえます。" : "「" + x.name + "」を開きました。") + dateNote());
+  });
+
+  // ===== イベント =====
+  var timer = null;
+  function later() { clearTimeout(timer); timer = setTimeout(function () { timer = null; refresh(); }, 300); }
+  function flush() { if (timer) { clearTimeout(timer); timer = null; refresh(); } }
+  FIELDS.forEach(function (id) { $(id).addEventListener("input", later); $(id).addEventListener("change", function () { flush(); }); });
+  ["chkSub", "chkTax", "chkTotal"].forEach(function (id) {
+    $(id).addEventListener("change", function () { var v = numI($(id).value); if (v !== null && !isNaN(v)) $(id).value = fmt(v); flush(); refresh(); checkTrack(); });
+  });
+  [].forEach.call(document.querySelectorAll('input[name="tin"], input[name="tcalc"], input[name="trm"]'), function (r) { r.addEventListener("change", function () { flush(); refresh(); }); });
+  $("inPage").addEventListener("change", refresh);
+  $("sampleBtn").addEventListener("click", function () {
+    $("inTo").value = "株式会社さくら商事"; $("inSuffix").value = "御中"; $("inSubj").value = "創業10周年イベントの運営"; $("inNo").value = "2026-1120-01";
+    $("inDate").value = today(); $("inValid").value = addDays(today(), 30); $("inDeliv").value = "2027年1月15日(イベント当日)"; $("inPay").value = "月末締め翌月末払い"; $("inPlace").value = "貴社指定会場";
+    $("inNote").value = "交通費は実費でご請求します。\n人数が変わるときは、お弁当とお茶の数を直してお見積りし直します。";
+    $("inCo").value = "株式会社ウーハイ企画"; $("inPerson").value = "営業部 山田"; $("inAddr").value = "〒100-0001 東京都千代田区○○1-2-3"; $("inTel").value = "03-0000-0000"; $("inMail").value = "info@example.jp";
+    items = []; nextId = 1;
+    [["会場の設営・撤去", "1", "式", "80,000", "", "10"], ["音響機材のレンタル", "1", "日", "45,000", "", "10"], ["運営スタッフ", "6", "人日", "18,000", "", "10"], ["お弁当", "30", "個", "1,080", "", "8"], ["お茶(ペットボトル)", "30", "本", "150", "4,050", "8"], ["出精値引き", "1", "式", "-10,000", "", "10"]]
+      .forEach(function (r) { items.push(newItem({ name: r[0], q: r[1], unit: r[2], p: r[3], a: r[4], rate: r[5] })); });
+    renderItems(); refresh();
+    setSt2("infoSt", "例(イベント運営の見積)を入れました。5行目は、わざと金額をまちがえてあります(赤い枠と差額が出ます)。");
+  });
+
+  // ===== 印刷・保存 =====
+  function toBlob(c) { return new Promise(function (res) { c.toBlob(function (b) { res(b); }, "image/png"); }); }
+  function download(blob, name) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function renderAll(C, S, L) {
+    var out = [], p = Promise.resolve(), n = L.length, dpi = n > 6 ? 150 : 200;
+    L.forEach(function (_, i) { p = p.then(function () { if (n > 2) setSt("outSt", "画像を作っています(" + (i + 1) + "/" + n + "枚)…"); var c = render(C, S, L, i, dpi); if (!c) throw new Error("canvas"); return toBlob(c).then(function (b) { c.width = c.height = 0; if (!b) throw new Error("blob"); out.push(b); }); }); });
+    return p.then(function () { return out; });
+  }
+  function ev(C, S, pages, how) { var o = { rows: S.rows.length, rates: S.rates, mode: C.st.inc ? "inc" : "ext", pages: pages }; if (how) o.how = how; return o; }
+  var busyFlag = false, printUrls = [];
+  function clearPrint() { printUrls.forEach(function (u) { URL.revokeObjectURL(u); }); printUrls = []; $("printArea").textContent = ""; document.body.classList.remove("printing"); }
+  $("printBtn").addEventListener("click", function () {
+    if (busyFlag) return;
+    flush();
+    var C = lastC, S = lastS, L = lastL;
+    busyFlag = true; clearPrint();
+    setSt("outSt", "印刷用の画像を作っています…");
+    renderAll(C, S, L).then(function (blobs) {
+      return Promise.all(blobs.map(function (b) {
+        return new Promise(function (res, rej) { var u = URL.createObjectURL(b), im = new Image(); printUrls.push(u); im.style.width = (W - 0.3) + "mm"; im.style.height = (H - 0.3) + "mm"; im.onload = res; im.onerror = function () { rej(new Error("img")); }; im.alt = ""; im.src = u; $("printArea").appendChild(im); });
+      })).then(function () { return blobs.length; });
+    }).then(function (cnt) {
+      document.body.classList.add("printing");
+      setSt("outSt", "印刷画面を開きました(紙" + cnt + "枚)。");
+      track("mitsumori_print", ev(C, S, cnt));
+      setTimeout(function () { window.print(); }, 50);
+    }).catch(function () { clearPrint(); setSt("outSt", "印刷用の画像を作れませんでした。ページを読み込み直して、もう一度お試しください。", true); }).then(function () { busyFlag = false; });
+  });
+  window.addEventListener("afterprint", clearPrint);
+  // Ctrl+P やブラウザのメニューから印刷したときも、見積書を印刷する(画面のかわりに見本の紙を出す)
+  window.addEventListener("beforeprint", function () {
+    if (document.body.classList.contains("printing")) return;
+    flush(); clearPrint();
+    var C = lastC, S = lastS, L = lastL;
+    L.forEach(function (_, i) { var c = render(C, S, L, i, 150); if (!c) return; c.style.width = (W - 0.3) + "mm"; c.style.height = (H - 0.3) + "mm"; $("printArea").appendChild(c); });
+    document.body.classList.add("printing");
+    track("mitsumori_print", ev(C, S, L.length, "browser"));
+  });
+  $("bigBtn").addEventListener("click", function () {
+    flush();
+    var c = render(lastC, lastS, lastL, +$("inPage").value || 0, 150); if (!c) return;
+    var w = window.open("", "_blank");
+    if (!w) { setSt("outSt", "新しいタブを開けませんでした(ポップアップがブロックされました)。「画像で保存」をお使いください。", true); return; }
+    toBlob(c).then(function (b) {
+      if (!b) { w.close(); return; }
+      var u = URL.createObjectURL(b); w.location.href = u;
+      setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+    }).catch(function () { w.close(); });
+  });
+  var saveMany = function (blobs, names) {
+    var p = Promise.resolve();
+    blobs.forEach(function (b, i) { p = p.then(function () { download(b, names[i]); return new Promise(function (r) { setTimeout(r, 700); }); }); });
+    return p;
+  };
+  function guard(v) { var s = String(v == null ? "" : v); return /^[=+\-@\t\r＝＋－＠]/.test(s) ? "'" + s : s; }
+  function tsv(rows) { return rows.map(function (r) { return r.map(function (c) { return typeof c === "number" ? String(c) : guard(String(c).replace(/[\t\n]/g, " ")); }).join("\t"); }).join("\n") + "\n"; }
+  function itemTable(C, S) {
+    var rows = [["品名", "数量", "単位", "単価", "税率", "金額"]];
+    S.rows.forEach(function (r) { rows.push([r.name, r.q === null || isNaN(r.q) ? "" : r.q, r.unit, r.p === null || isNaN(r.p) ? "" : r.p, RATES[r.rate], r.used]); });
+    rows.push([]);
+    var t = S.t;
+    var inc = C.st.inc;
+    rateRows(S).forEach(function (k) { if (k !== "0") rows.push([k + "%対象" + (inc ? "(税込)" : ""), "", "", "", "", t.by[k].base], [(inc ? "うち消費税(" : "消費税(") + k + "%)", "", "", "", "", t.by[k].tax]); else rows.push(["非課税・対象外", "", "", "", "", t.by[k].base]); });
+    if (inc) rows.push(["合計(税込)", "", "", "", "", t.total], ["うち消費税", "", "", "", "", t.tax], ["税抜金額", "", "", "", "", t.sub]);
+    else rows.push(["小計(税抜)", "", "", "", "", t.sub], ["消費税", "", "", "", "", t.tax], ["合計(税込)", "", "", "", "", t.total]);
+    return rows;
+  }
+  $("copyBtn").addEventListener("click", function () {
+    flush();
+    if (!lastS.rows.length) { setSt("outSt", "明細がまだ空です。", true); return; }
+    copyText(tsv(itemTable(lastC, lastS)), function () { setSt2("outSt", "明細" + lastS.rows.length + "行と合計を表としてコピーしました。Excelに貼れます。"); }, "outSt");
+  });
+  function safeName(s) {
+    var t = Array.from(String(s).replace(/[\/\\:*?"<>|]/g, "")).filter(okCh).join("").replace(/[. ]+$/, "").slice(0, 60) || "御見積書";
+    return /^(con|prn|aux|nul|com\d|lpt\d)$/i.test(t) ? "_" + t : t;
+  }
+  function baseName(C) { return safeName(["御見積書", C.subj || C.to, C.no].filter(Boolean).join("_")); }
+  
+  $("pngBtn").addEventListener("click", function () {
+    if (busyFlag) return;
+    flush();
+    var C = lastC, S = lastS, L = lastL, digits = Math.max(2, String(L.length).length), base = baseName(C);
+    var names = L.map(function (pg, i) { return base + (L.length > 1 ? "_" + String(i + 1).padStart(digits, "0") : "") + ".png"; });
+    var zipName = base + "_紙" + L.length + "枚.zip";
+    busyFlag = true; setSt("outSt", "画像を作っています…");
+    renderAll(C, S, L).then(function (blobs) {
+      var phone = window.matchMedia && matchMedia("(pointer:coarse)").matches, files = null;
+      track("mitsumori_save", ev(C, S, blobs.length, blobs.length > 1 && FULL ? "zip" : "png"));
+      try { files = blobs.map(function (b, i) { return new File([b], names[i], { type: "image/png" }); }); } catch (e) {}
+      if (phone && files && navigator.canShare && navigator.canShare({ files: files })) {
+        setSt("outSt", "共有メニューから、保存先(「画像を保存」など)を選ぶと保存できます。");
+        return navigator.share({ files: files }).then(function () { setSt("outSt", "保存(共有)が終わりました。"); }, function (err) {
+          if (err && err.name === "AbortError") { setSt("outSt", "共有をやめました。もう一度押すと保存できます。"); return; }
+          return saveMany(blobs, names, zipName).then(function () { setSt("outSt", "保存しました。"); });
+        });
+      }
+      return saveMany(blobs, names, zipName).then(function () { setSt("outSt", (blobs.length > 1 ? blobs.length + "枚の画像を" + (FULL ? "ZIPファイル1つにまとめて" : "") : "画像を") + "保存しました。"); });
+    }).catch(function () { setSt("outSt", "画像を作れませんでした。ページを読み込み直して、もう一度お試しください。", true); }).then(function () { busyFlag = false; });
+  });
+
+  function faq(id, q, a) { var li = $(id), st = document.createElement("strong"); st.textContent = q; li.textContent = ""; li.appendChild(st); li.appendChild(document.createTextNode(" " + a)); }
+  if (EDITION === "full") {
+    $("pro-section").classList.add("hidden");
+    $("keepHint").textContent = "保存しても、ブラウザの閲覧データを消したときや、別のブラウザで開いたとき、このファイルを別の場所へ動かしたときは、前の入力が出てこないことがあります。決まったら、印刷か画像・CSVで残しておくと安心です。共用のパソコンでは、チェックを外します。";
+    faq("faqPhone", "スマホで使いたい", "このファイルはパソコン用です。スマホでは無料版(ブラウザで使えるページ)を使い、「引き継ぎ用の文」をコピーして、このファイルに貼れば移せます(移したあとは100行まで足せます)。");
+    faq("faqCount", "何行まで入る?", "明細は100行までです。紙に入りきらないときは2枚以上に分け、2枚目からは「明細の続き」と前のページからの繰越の額を入れます。");
+  } else {
+    faq("faqPhone", "スマホだけで作れる?", "作れます。スマホで入れて「画像で保存」すれば、メールやチャットで送ったり、コンビニのプリントで印刷したりできます。");
+    faq("faqCount", "何行まで入る?", "無料版は明細15行まで(A4の紙1枚)です。買い切り版は100行まで入り、2枚以上に分けて印刷できます。");
+    $("privacyNote").innerHTML = '入力した内容はどこにも送信されません(すべてこのブラウザの中で処理し、保存のチェックがあるときだけ、このブラウザに保存します)。このページでは利用状況の把握のためにアクセス解析(Google Analytics)を使っています(送るのは行数・税率の種類・確かめた結果の件数だけで、品名・金額・宛先はふくみません)。<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用について</a>';
+  }
+  $("goMake").addEventListener("click", function () { $("info-card").scrollIntoView({ block: "start" }); $("inTo").focus({ preventScroll: true }); });
+  $("goCheck").addEventListener("click", function () { $("chk-card").scrollIntoView({ block: "start" }); $("chkSub").focus({ preventScroll: true }); });
+  setDefaults();
+  var loaded = load();
+  renderItems(); refresh(); renderSaved();
+  if (loaded) setSt2("infoSt", "前回の入力を読み込みました。" + dateNote());
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+})();
+</script>
+<!--UPSELL_JS_START-->
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  if (q.get("obs") === "1" || document.documentElement.classList.contains("obs")) return;
+  // 小さな案内(トースト)は、買い切り版がパソコン向けなので、マウス操作の広い画面でだけ出す
+  var pc = !!(window.matchMedia && matchMedia("(pointer:fine) and (min-width:720px)").matches);
+  var buy = document.getElementById("buyLink");
+  var pro = document.getElementById("pro-section");
+  if (!buy || !pro) return;
+  var FEATS = ["明細100行(2枚以上に分けて印刷・繰越つき)", "会社のロゴ・角印の画像を入れる", "見積を30件まで保存(無料版は3件)・CSV・ツール名なし"], CALM = false;
+  var path = location.pathname.replace(/index\.html$/, "");
+  var KEY_CLOSED = "upsell_closed_until:" + path, KEY_SHOWN = "upsell_shown:" + path;
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function sess(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+  function gtagEv(name, p) { if (!window.dataLayer) return; (function () { window.dataLayer.push(arguments); })("event", name, p || {}); }
+
+  var shown = false;
+  function blocked() {
+    if (shown || sess(KEY_SHOWN) === "1") return true;
+    var until = Number(store(KEY_CLOSED) || 0);
+    return until && Date.now() < until;
+  }
+  function feats() {
+    if (FEATS.length) return FEATS;
+    var out = [];
+    var lis = pro.querySelectorAll(".feat-list li");
+    for (var i = 0; i < lis.length && out.length < 3; i++) {
+      var all = lis[i].textContent.replace(/\s+/g, " ").trim();
+      if (/スマホ|HTMLファイル|パソコンで使う/.test(all)) continue;
+      var st = lis[i].querySelectorAll("strong");
+      var t = st.length === 1 ? st[0].textContent : all.split(/[::。]/)[0];
+      t = t.replace(/[((][^()()]*[))]/g, "").replace(/\s+/g, " ").trim();
+      if (t.length > 40) t = t.slice(0, 39) + "…";
+      if (t) out.push(t);
+    }
+    return out;
+  }
+  // 「〜してください」「できません」など、失敗の表示が出ていたら案内しない
+  function failed() {
+    var els = document.querySelectorAll('[role="status"], [role="alert"], [aria-live]');
+    for (var i = 0; i < els.length; i++) {
+      if (pro.contains(els[i]) || !els[i].offsetParent) continue;
+      if (/ください|できません|できませんでした|失敗|ありません|エラー/.test(els[i].textContent)) return true;
+    }
+    return false;
+  }
+  function proVisible() {
+    var r = pro.getBoundingClientRect();
+    return r.top < innerHeight && r.bottom > 0;
+  }
+  function show(trigger) {
+    if (!pc || blocked() || (trigger === "action" && failed()) || proVisible()) return;
+    var list = feats();
+    if (!list.length) return;
+    shown = true;
+    sess(KEY_SHOWN, "1");
+    var box = document.createElement("aside");
+    box.className = "upsell-toast" + (CALM ? " upsell-calm" : "");
+    box.setAttribute("aria-label", "買い切り版のご案内");
+    box.setAttribute("aria-live", "polite");
+    document.body.appendChild(box);
+    var p = document.createElement("p");
+    p.textContent = trigger === "limit" && CALM ? "件数が多いときは、パソコン用の買い切り版(¥100・税込)で続けられます:"
+      : trigger === "limit"
+      ? "この先は買い切り版の機能です。パソコン用の買い切り版(¥100・税込)なら:"
+      : CALM ? "件数が多いときや、香典返しの準備をまとめたいときのために、パソコン用の買い切り版(¥100・税込)もあります:" : "うまくできましたか? パソコン用の買い切り版(¥100・税込)なら、さらに:";
+    var ul = document.createElement("ul");
+    list.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    var a = document.createElement("a");
+    a.className = "upsell-go";
+    a.id = "upsellToastLink";
+    a.href = buy.href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "BOOTHで見る(新しいタブ)";
+    var bg = getComputedStyle(buy).backgroundColor;
+    if (bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) a.style.background = bg;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "upsell-x";
+    x.setAttribute("aria-label", "この案内を閉じる");
+    x.textContent = "×";
+    function close(remember) {
+      if (box.parentNode) box.parentNode.removeChild(box);
+      document.removeEventListener("keydown", onKey);
+      if (remember) store(KEY_CLOSED, String(Date.now() + 7 * 864e5));
+    }
+    // Escはページ側の操作(選択解除など)にも使われるので、案内の中にフォーカスがある時だけ閉じる
+    function onKey(e) { if (e.key === "Escape" && box.contains(document.activeElement)) close(true); }
+    x.addEventListener("click", function () { close(true); });
+    a.addEventListener("click", function () { setTimeout(function () { close(false); }, 0); });
+    document.addEventListener("keydown", onKey);
+    setTimeout(function () {
+      var note = document.createElement("small");
+      note.className = "upsell-note";
+      note.textContent = "スマホではファイルを開けない機種があります";
+      box.appendChild(x); box.appendChild(p); box.appendChild(ul); box.appendChild(a); box.appendChild(note);
+    }, 50);
+    gtagEv("upsell_show", { trigger: trigger });
+  }
+
+  // 保存・コピー・印刷・書き出しを押した直後(結果を受け取れたタイミング)
+  var OK = /保存|コピー|印刷|書き出|ダウンロード|共有|PDF/;
+  var NG = /読み込|リセット|消|削除|このブラウザに保存|確認|イメージを見る|戻/;
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, a[download], input[type=button], input[type=submit]") : null;
+    if (!el || el.closest("#pro-section, .upsell-toast, #anshin")) return;
+    var label = (el.textContent || el.value || "").replace(/\s+/g, " ");
+    if (!OK.test(label) || NG.test(label)) return;
+    setTimeout(function () { show("action"); }, 1500);
+  }, true);
+
+  // 無料版の上限まわり
+  // (1) ページが出す「買い切り版」の一文に、購入欄へのリンクを足す(スマホでも)。🔒のタブは薄く表示されているので入れない
+  // (2) 案内(パソコンのみ)は、はっきりした合図のときだけ出す: 🔒のクリック・買い切り版にふれたalert・
+  //     初めて出た「〜まで/のみ/以降/入っていません」の上限の一文(計算のたびに出る誘導文や、同じ文の描き直しでは出さない)
+  var SKIP = "#pro-section, .upsell-toast, .upsell-top, #anshin, a, button, label, select, option, h1, h2, h3, .badge, header, footer, nav, textarea, pre, code, [contenteditable], svg";
+  var LIMIT = /まで|のみ|以降|入っていません/;
+  var seenText = {}, ready = false;
+  function goPro(e) {
+    if (e) e.preventDefault();
+    pro.setAttribute("tabindex", "-1");
+    pro.scrollIntoView({ behavior: "smooth", block: "start" });
+    pro.focus({ preventScroll: true });
+  }
+  function linkify(root, deep) {
+    var limitHit = false;
+    var els = root.matches("p, div, span, li") ? [root] : [];
+    if (deep) els = els.concat([].slice.call(root.querySelectorAll("p, div, span, li")));
+    els.forEach(function (el) {
+      if (el.closest(SKIP) || el.closest('[role="radio"], [role="option"], [role="tab"], [role="button"], [tabindex]:not([tabindex="-1"])') || el.querySelector("a, button, p, div, li, input, label")) return;
+      // 選択肢の「○○(買い切り版)」ではなく、文として買い切り版にふれている要素だけ
+      var own = "";
+      for (var n = el.firstChild; n; n = n.nodeType === 1 && n.className === "upsell-inline" ? null : n.nextSibling) if (n.nodeType === 3) own += n.nodeValue;
+      own = own.trim();
+      if (own.indexOf("買い切り版") < 0 || /[((]買い切り版[))]$/.test(own) || /^🔒/.test(own)) return;
+      var key = own.replace(/\d+/g, "#");
+      if (ready && !seenText[key] && LIMIT.test(own) && !el.closest(".teaser, #teaser, [id$=teaser], #tz")) limitHit = true;
+      seenText[key] = 1;
+      if (el.querySelector(".upsell-inline")) return;
+      var a = document.createElement("a");
+      a.className = "upsell-inline";
+      a.href = "#pro-section";
+      a.setAttribute("aria-label", "くわしく:買い切り版の説明へ移動");
+      a.textContent = "くわしく";
+      var ar = document.createElement("span");
+      ar.setAttribute("aria-hidden", "true");
+      ar.textContent = " ↓";
+      a.appendChild(ar);
+      a.addEventListener("click", goPro);
+      el.appendChild(document.createTextNode(" "));
+      el.appendChild(a);
+    });
+    return limitHit;
+  }
+  linkify(document.body, true);
+  setTimeout(function () { ready = true; }, 1500);
+  var topLink = document.querySelector("#upsellTop a");
+  if (topLink) topLink.addEventListener("click", goPro);
+  new MutationObserver(function (ms) {
+    // 変わったところだけを調べる(足された要素はその中も、文字の変更は親要素だけ)
+    var hit = false, done = new Set();
+    function check(t, deep) {
+      if (!t || t.nodeType !== 1 || done.has(t) || t.closest(".upsell-toast")) return;
+      done.add(t);
+      if (linkify(t, deep)) hit = true;
+    }
+    ms.forEach(function (m) {
+      if (m.type === "characterData") { check(m.target.parentNode, false); return; }
+      check(m.target, false);
+      for (var i = 0; i < m.addedNodes.length; i++) if (m.addedNodes[i].nodeType === 1) check(m.addedNodes[i], true);
+    });
+    if (hit) setTimeout(function () { show("limit"); }, 800);
+  }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, div, span, li") : null;
+    var first = el && el.firstChild && el.firstChild.nodeType === 3 ? el.firstChild.nodeValue : "";
+    if (!/^\s*🔒/.test(first) || e.target.closest("#pro-section")) return;
+    if (pc) setTimeout(function () { show("limit"); }, 300); else goPro();
+  }, true);
+  var origAlert = window.alert;
+  window.alert = function (msg) {
+    var r = origAlert.apply(window, arguments);
+    if (/買い切り版/.test(String(msg))) setTimeout(function () { show("limit"); }, 300);
+    return r;
+  };
+})();
+</script>
+<!--UPSELL_JS_END-->
+</body>
+</html>
